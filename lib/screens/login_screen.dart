@@ -1,4 +1,5 @@
 import 'package:daisy_brew/screens/signup_screen.dart';
+import 'package:daisy_brew/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -15,10 +16,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Add login logic here
+      // Show Snackbar
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Logging in...')));
+
+      // Navigate to HomeScreen after a short delay
+      Future.delayed(const Duration(seconds: 1), () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      });
     }
   }
 
