@@ -1,3 +1,4 @@
+import 'package:daisy_brew/screens/signup_screen.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -114,6 +115,29 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
+                ),
+
+                const SizedBox(height: 20),
+                // Navigate to Signup
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Don’t have an account?'),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const RegisterScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Sign Up',
+                        style: TextStyle(color: Colors.brown),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
