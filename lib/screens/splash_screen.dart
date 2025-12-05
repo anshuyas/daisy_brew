@@ -1,3 +1,4 @@
+import 'package:daisy_brew/screens/onboarding1_screen.dart';
 import 'package:flutter/material.dart';
 
 class MyApp extends StatelessWidget {
@@ -34,7 +35,6 @@ class SplashScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Overlay texture (optional: can use your image as background if needed)
           // Center content
           Center(
             child: Column(
@@ -72,7 +72,11 @@ class SplashScreen extends StatelessWidget {
             right: 50,
             child: ElevatedButton(
               onPressed: () {
-                // Navigate to next screen
+                // Navigate to OnboardingScreen1
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => OnboardingScreen1()),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFF3D19C),
