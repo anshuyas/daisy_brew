@@ -1,3 +1,4 @@
+import 'package:daisy_brew/screens/onboarding2_screen.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingScreen1 extends StatelessWidget {
@@ -18,6 +19,16 @@ class OnboardingScreen1 extends StatelessWidget {
             Text(
               'Order delicious drinks with personalized options.',
               textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => OnboardingScreen2()),
+                );
+              },
+              child: Text('Next'),
             ),
           ],
         ),
