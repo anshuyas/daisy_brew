@@ -29,7 +29,7 @@ class HomeScreen extends StatelessWidget {
             Expanded(
               child: Center(
                 child: Text(
-                  'I am home screen written',
+                  'I Am Home Screen',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,

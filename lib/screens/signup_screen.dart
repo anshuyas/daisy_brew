@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -15,7 +16,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _signup() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Add signup logic here
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Signing up...')));
@@ -93,7 +93,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Password TextField
                 TextFormField(
                   controller: passwordController,
                   obscureText: true,
@@ -134,6 +133,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                   ),
+                ),
+
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Already have an account?'),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const HomeScreen()),
+                        );
+                      },
+                      child: const Text(
+                        'Login',
+                        style: TextStyle(color: Colors.brown),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
