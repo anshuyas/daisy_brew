@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 class ProductCardWidget extends StatelessWidget {
   final String name;
   final String price;
+  final String imagePath;
   final VoidCallback? onAddTap;
 
   const ProductCardWidget({
     super.key,
     required this.name,
     required this.price,
+    required this.imagePath,
     this.onAddTap,
   });
 
@@ -24,17 +26,15 @@ class ProductCardWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Center(
-              child: Icon(Icons.coffee, size: 60, color: Colors.brown),
-            ),
+            child: Center(child: Image.asset(imagePath, fit: BoxFit.contain)),
           ),
           const SizedBox(height: 8),
-          Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(name, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(price),
+              Text(price, style: Theme.of(context).textTheme.bodyMedium),
               GestureDetector(
                 onTap: onAddTap,
                 child: const CircleAvatar(
