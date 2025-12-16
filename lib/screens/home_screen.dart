@@ -90,12 +90,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSpacing: 12,
                   childAspectRatio: 0.75,
                   children: const [
-                    ProductCardWidget(name: 'Cappuccino', price: 'Rs. 250'),
-                    ProductCardWidget(name: 'Americano', price: 'Rs. 150'),
-                    ProductCardWidget(name: 'Espresso', price: 'Rs. 100'),
-                    ProductCardWidget(name: 'Latte', price: 'Rs. 200'),
-                    ProductCardWidget(name: 'Iced Machiato', price: 'Rs. 295'),
-                    ProductCardWidget(name: 'Ristretto', price: 'Rs. 125'),
+                    ProductCardWidget(
+                      name: 'Cappuccino',
+                      price: 'Rs. 250',
+                      imagePath: 'assets/images/cappuccino.png',
+                    ),
+                    ProductCardWidget(
+                      name: 'Americano',
+                      price: 'Rs. 150',
+                      imagePath: 'assets/images/americano.png',
+                    ),
+                    ProductCardWidget(
+                      name: 'Espresso',
+                      price: 'Rs. 100',
+                      imagePath: 'assets/images/espresso.png',
+                    ),
+                    ProductCardWidget(
+                      name: 'Latte',
+                      price: 'Rs. 200',
+                      imagePath: 'assets/images/latte.jpg',
+                    ),
+                    ProductCardWidget(
+                      name: 'Iced Machhiato',
+                      price: 'Rs. 295',
+                      imagePath: 'assets/images/iced machhiato.jpg',
+                    ),
+                    ProductCardWidget(
+                      name: 'Ristretto',
+                      price: 'Rs. 125',
+                      imagePath: 'assets/images/ristretto.jpg',
+                    ),
                   ],
                 ),
               ),
