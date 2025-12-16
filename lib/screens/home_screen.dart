@@ -93,17 +93,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     ProductCardWidget(
                       name: 'Cappuccino',
                       price: 'Rs. 250',
-                      imagePath: 'assets/images/cappuccino.png',
+                      imagePath: 'assets/images/cappuccino.jpg',
                     ),
                     ProductCardWidget(
                       name: 'Americano',
                       price: 'Rs. 150',
-                      imagePath: 'assets/images/americano.png',
+                      imagePath: 'assets/images/americano.jpg',
                     ),
                     ProductCardWidget(
                       name: 'Espresso',
                       price: 'Rs. 100',
-                      imagePath: 'assets/images/espresso.png',
+                      imagePath: 'assets/images/espresso.jpg',
                     ),
                     ProductCardWidget(
                       name: 'Latte',
@@ -118,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ProductCardWidget(
                       name: 'Ristretto',
                       price: 'Rs. 125',
-                      imagePath: 'assets/images/ristretto.jpg',
+                      imagePath: 'assets/images/ristretto.webp',
                     ),
                   ],
                 ),
