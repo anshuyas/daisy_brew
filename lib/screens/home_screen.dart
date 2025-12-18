@@ -1,56 +1,130 @@
 import 'package:flutter/material.dart';
+import '../widgets/category_chip_widget.dart';
+import '../widgets/product_card_widget.dart';
+import '../widgets/header_widget.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int selectedCategoryIndex = 0;
+  int bottomNavIndex = 0;
+
+  final List<String> categories = [
+    'Coffee',
+    'Matcha',
+    'Smoothies',
+    'Bubble Tea',
+  ];
+
+  void _onCategoryTap(int index) {
+    setState(() {
+      selectedCategoryIndex = index;
+    });
+  }
+
+  void _onCartTap() {}
+
+  void _onBottomNavTap(int index) {
+    setState(() {
+      bottomNavIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFFFFF3E7), // soft peach
-              Color(0xFFEBDCCB), // warm beige
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      backgroundColor: const Color(0xFFF6EBDD),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.brown,
+        unselectedItemColor: Colors.black54,
+        currentIndex: bottomNavIndex,
+        onTap: _onBottomNavTap,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long),
+            label: 'Order History',
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Logo at top-left
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    width: 40,
-                    height: 40,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-
-              // Centered text
-              Expanded(
-                child: Center(
-                  child: Text(
-                    'I Am Home Screen',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.brown.shade700,
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications),
+            label: 'Notification',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+      ),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            HeaderWidget(onCartTap: _onCartTap),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: List.generate(
+                    categories.length,
+                    (index) => CategoryChipWidget(
+                      label: categories[index],
+                      selected: selectedCategoryIndex == index,
+                      onTap: () => _onCategoryTap(index),
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.75,
+                  children: const [
+                    ProductCardWidget(
+                      name: 'Cappuccino',
+                      price: 'Rs. 250',
+                      imagePath: 'assets/images/cappucino.jpg',
+                    ),
+                    ProductCardWidget(
+                      name: 'Americano',
+                      price: 'Rs. 150',
+                      imagePath: 'assets/images/americano.jpg',
+                    ),
+                    ProductCardWidget(
+                      name: 'Espresso',
+                      price: 'Rs. 100',
+                      imagePath: 'assets/images/espresso.jpg',
+                    ),
+                    ProductCardWidget(
+                      name: 'Latte',
+                      price: 'Rs. 200',
+                      imagePath: 'assets/images/latte.jpg',
+                    ),
+                    ProductCardWidget(
+                      name: 'Iced Machhiato',
+                      price: 'Rs. 295',
+                      imagePath: 'assets/images/iced macchiato.jpg',
+                    ),
+                    ProductCardWidget(
+                      name: 'Ristretto',
+                      price: 'Rs. 125',
+                      imagePath: 'assets/images/ristretto.webp',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
