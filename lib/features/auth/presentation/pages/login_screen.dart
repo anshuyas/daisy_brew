@@ -1,5 +1,5 @@
-import 'package:daisy_brew/screens/signup_screen.dart';
-import 'package:daisy_brew/screens/home_screen.dart';
+import 'package:daisy_brew/features/auth/presentation/pages/signup_screen.dart';
+import 'package:daisy_brew/features/dashboard/presentation/pages/home_screen.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
