@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart'; // import LoginScreen
+import '../../../auth/presentation/pages/login_screen.dart'; // import LoginScreen
 
 class OnboardingScreen3 extends StatelessWidget {
   @override

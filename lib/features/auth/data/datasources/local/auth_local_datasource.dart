@@ -3,9 +3,8 @@ import 'package:daisy_brew/features/auth/data/datasources/auth_datasource.dart';
 import 'package:daisy_brew/features/auth/data/models/auth_hive_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// Create provider
 final authLocalDatasourceProvider = Provider<AuthLocalDatasource>((ref) {
-  final hiveService = ref.watch(HiveServiceProvider);
+  final hiveService = ref.watch(hiveServiceProvider);
   return AuthLocalDatasource(hiveService: hiveService);
 });
 
@@ -16,18 +15,20 @@ class AuthLocalDatasource implements IAuthDataSource {
     : _hiveService = hiveService;
 
   @override
-  Future<AuthHiveModel?> getCurrentUser() {
-    // TODO: implement getCurrentUser
-    throw UnimplementedError();
+  Future<AuthHiveModel?> getCurrentUser() async {
+    try {
+      return _hiveService.getCurrentUser();
+    } catch (e) {
+      return null;
+    }
   }
 
   @override
   Future<AuthHiveModel?> login(String email, String password) async {
     try {
-      final user = await _hiveService.loginUser(email, password);
-      return Future.value(user);
+      return await _hiveService.loginUser(email, password);
     } catch (e) {
-      return Future.value(null);
+      return null;
     }
   }
 
@@ -35,9 +36,9 @@ class AuthLocalDatasource implements IAuthDataSource {
   Future<bool> logout() async {
     try {
       await _hiveService.logoutUser();
-      return Future.value(true);
+      return true;
     } catch (e) {
-      return Future.value(false);
+      return false;
     }
   }
 
@@ -45,19 +46,18 @@ class AuthLocalDatasource implements IAuthDataSource {
   Future<bool> register(AuthHiveModel user) async {
     try {
       await _hiveService.registerUser(user);
-      return Future.value(true);
+      return true;
     } catch (e) {
-      return Future.value(false);
+      return false;
     }
   }
 
   @override
-  Future<bool> isEmailExists(String email) {
+  Future<bool> isEmailExists(String email) async {
     try {
-      final exists = _hiveService.isEmailExists(email);
-      return Future.value(exists);
+      return _hiveService.isEmailExists(email);
     } catch (e) {
-      return Future.value(false);
+      return false;
     }
   }
 }

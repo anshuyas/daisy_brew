@@ -8,6 +8,7 @@ enum AuthStatus {
   unauthenticated,
   registered,
   error,
+  loggedIn,
 }
 
 class AuthState extends Equatable {

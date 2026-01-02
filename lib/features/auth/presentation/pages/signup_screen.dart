@@ -1,29 +1,55 @@
+import 'package:daisy_brew/features/auth/presentation/pages/login_screen.dart';
 import 'package:flutter/material.dart';
-import '../../../dashboard/presentation/pages/home_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class RegisterScreen extends StatefulWidget {
+import '../../../dashboard/presentation/pages/home_screen.dart';
+import '../../../auth/presentation/state/auth_state.dart';
+import '../../../auth/presentation/view_model/auth_view_model.dart';
+import '../../../auth/data/datasources/local/auth_local_datasource.dart';
+import '../../../../core/utils/snackbar_utils.dart';
+
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  _RegisterScreenState createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
-  void _signup() {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Signing up...')));
-    }
-  }
+  final TextEditingController confirmController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authViewModelProvider);
+
+    /// 🔹 Listen for auth state changes
+    ref.listen(authViewModelProvider, (_, next) {
+      if (next.status == AuthStatus.registered) {
+        showSnackbar(
+          context,
+          'Registration successful! Please login.',
+          color: Colors.green,
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      } else if (next.status == AuthStatus.error) {
+        showSnackbar(
+          context,
+          next.errorMessage ?? 'Registration failed',
+          color: Colors.red,
+        );
+        ref.read(authViewModelProvider.notifier).clearError();
+      }
+    });
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -45,6 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
+
                 const Text(
                   'Create Account',
                   style: TextStyle(
@@ -55,31 +82,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                // Name TextField
+                // Full Name
                 TextFormField(
                   controller: nameController,
                   decoration: InputDecoration(
                     labelText: 'Full Name',
-                    prefixIcon: Icon(Icons.person, color: Colors.brown),
+                    prefixIcon: const Icon(Icons.person, color: Colors.brown),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Full Name is required';
-                    }
-                    return null;
-                  },
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Full Name is required'
+                      : null,
                 ),
                 const SizedBox(height: 20),
 
-                // Email TextField
+                // Email
                 TextFormField(
                   controller: emailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
-                    prefixIcon: Icon(Icons.email, color: Colors.brown),
+                    prefixIcon: const Icon(Icons.email, color: Colors.brown),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -88,53 +112,86 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Email is required';
                     }
+                    if (!value.contains('@')) {
+                      return 'Invalid email';
+                    }
                     return null;
                   },
                 ),
                 const SizedBox(height: 20),
 
+                // Password
                 TextFormField(
                   controller: passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock, color: Colors.brown),
+                    prefixIcon: const Icon(Icons.lock, color: Colors.brown),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Password is required';
-                    }
-                    return null;
-                  },
+                  validator: (value) => value == null || value.length < 6
+                      ? 'Password must be at least 6 characters'
+                      : null,
                 ),
                 const SizedBox(height: 20),
+
+                // Confirm Password
                 TextFormField(
-                  controller: passwordController,
+                  controller: confirmController,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Confirm Password',
-                    prefixIcon: Icon(Icons.lock, color: Colors.brown),
+                    prefixIcon: const Icon(Icons.lock, color: Colors.brown),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Confirm Password is required';
-                    }
-                    return null;
-                  },
+                  validator: (value) => value != passwordController.text
+                      ? 'Passwords do not match'
+                      : null,
                 ),
                 const SizedBox(height: 30),
+
+                // Loading indicator
+                if (authState.status == AuthStatus.loading)
+                  const CircularProgressIndicator(),
 
                 // Sign Up Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _signup,
+                    onPressed: authState.status == AuthStatus.loading
+                        ? null
+                        : () async {
+                            if (_formKey.currentState!.validate()) {
+                              final datasource = ref.read(
+                                authLocalDatasourceProvider,
+                              );
+
+                              /// 🔹 Hive email check
+                              if (await datasource.isEmailExists(
+                                emailController.text,
+                              )) {
+                                showSnackbar(
+                                  context,
+                                  'Email already exists',
+                                  color: Colors.red,
+                                );
+                                return;
+                              }
+
+                              /// 🔹 Register via ViewModel
+                              ref
+                                  .read(authViewModelProvider.notifier)
+                                  .register(
+                                    fullName: nameController.text,
+                                    email: emailController.text,
+                                    password: passwordController.text,
+                                  );
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFF3D19C),
                       padding: const EdgeInsets.symmetric(vertical: 15),
@@ -154,13 +211,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
 
                 const SizedBox(height: 20),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text('Already have an account?'),
                     TextButton(
                       onPressed: () {
-                        Navigator.push(
+                        Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(builder: (_) => const HomeScreen()),
                         );

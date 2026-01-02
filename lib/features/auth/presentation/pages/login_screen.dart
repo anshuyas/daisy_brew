@@ -1,38 +1,48 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:daisy_brew/features/auth/presentation/pages/signup_screen.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/home_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:daisy_brew/features/auth/presentation/state/auth_state.dart';
+import 'package:daisy_brew/features/auth/presentation/view_model/auth_view_model.dart';
+import 'package:daisy_brew/core/utils/snackbar_utils.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
+
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  void _login() {
-    if (_formKey.currentState!.validate()) {
-      // Show Snackbar
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Logging in...')));
+  @override
+  Widget build(BuildContext context) {
+    final authState = ref.watch(authViewModelProvider);
 
-      // Navigate to HomeScreen after a short delay
-      Future.delayed(const Duration(seconds: 1), () {
+    /// 🔹 Listen to login result
+    ref.listen(authViewModelProvider, (_, next) {
+      if (next.status == AuthStatus.authenticated) {
+        showSnackbar(context, 'Login successful', color: Colors.green);
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
-      });
-    }
-  }
+      } else if (next.status == AuthStatus.error) {
+        showSnackbar(
+          context,
+          next.errorMessage ?? 'Invalid credentials',
+          color: Colors.red,
+        );
+        ref.read(authViewModelProvider.notifier).clearError();
+      }
+    });
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -54,6 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
+
                 const Text(
                   'Welcome Back!',
                   style: TextStyle(
@@ -64,12 +75,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                // Email TextField
+                // Email
                 TextFormField(
                   controller: emailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
-                    prefixIcon: Icon(Icons.email, color: Colors.brown),
+                    prefixIcon: const Icon(Icons.email, color: Colors.brown),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -78,36 +89,51 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Email is required';
                     }
+                    if (!value.contains('@')) {
+                      return 'Invalid email';
+                    }
                     return null;
                   },
                 ),
                 const SizedBox(height: 20),
 
-                // Password TextField
+                // Password
                 TextFormField(
                   controller: passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock, color: Colors.brown),
+                    prefixIcon: const Icon(Icons.lock, color: Colors.brown),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Password is required';
-                    }
-                    return null;
-                  },
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Password is required'
+                      : null,
                 ),
                 const SizedBox(height: 30),
+
+                // Loading indicator
+                if (authState.status == AuthStatus.loading)
+                  const CircularProgressIndicator(),
 
                 // Login Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _login,
+                    onPressed: authState.status == AuthStatus.loading
+                        ? null
+                        : () {
+                            if (_formKey.currentState!.validate()) {
+                              ref
+                                  .read(authViewModelProvider.notifier)
+                                  .login(
+                                    email: emailController.text,
+                                    password: passwordController.text,
+                                  );
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFF3D19C),
                       padding: const EdgeInsets.symmetric(vertical: 15),
@@ -127,6 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
 
                 const SizedBox(height: 20),
+
                 // Navigate to Signup
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -134,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Text('Don’t have an account?'),
                     TextButton(
                       onPressed: () {
-                        Navigator.push(
+                        Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                             builder: (_) => const RegisterScreen(),

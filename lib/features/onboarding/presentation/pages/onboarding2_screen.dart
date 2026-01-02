@@ -1,4 +1,4 @@
-import 'package:daisy_brew/screens/onboarding3_screen.dart';
+import 'package:daisy_brew/features/onboarding/presentation/pages/onboarding3_screen.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingScreen2 extends StatelessWidget {
