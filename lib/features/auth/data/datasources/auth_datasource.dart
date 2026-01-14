@@ -1,3 +1,4 @@
+import 'package:daisy_brew/features/auth/data/models/auth_api_model.dart';
 import 'package:daisy_brew/features/auth/data/models/auth_hive_model.dart';
 
 abstract interface class IAuthDataSource {
@@ -6,4 +7,10 @@ abstract interface class IAuthDataSource {
   Future<AuthHiveModel?> getCurrentUser();
   Future<bool> logout();
   Future<bool> isEmailExists(String email);
+}
+
+abstract interface class IAuthRemoteDatasource {
+  Future<AuthApiModel> register(AuthApiModel user);
+  Future<AuthApiModel?> login(String email, String password);
+  Future<AuthApiModel?> getUserById(String authId);
 }
