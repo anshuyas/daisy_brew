@@ -1,7 +1,6 @@
 import 'package:daisy_brew/core/api/api_client.dart';
 import 'package:daisy_brew/core/api/api_endpoints.dart';
 import 'package:daisy_brew/features/auth/data/models/auth_api_model.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
