@@ -27,7 +27,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
 
-    /// 🔹 Listen for auth state changes
     ref.listen(authViewModelProvider, (_, next) {
       if (next.status == AuthStatus.registered) {
         showSnackbar(
@@ -170,7 +169,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 authLocalDatasourceProvider,
                               );
 
-                              /// 🔹 Hive email check
                               if (await datasource.isEmailExists(
                                 emailController.text,
                               )) {
@@ -182,13 +180,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 return;
                               }
 
-                              /// 🔹 Register via ViewModel
                               ref
                                   .read(authViewModelProvider.notifier)
                                   .register(
                                     fullName: nameController.text,
                                     email: emailController.text,
                                     password: passwordController.text,
+                                    confirmPassword: confirmController.text,
                                   );
                             }
                           },

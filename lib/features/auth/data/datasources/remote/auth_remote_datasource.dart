@@ -20,8 +20,14 @@ class AuthRemoteDatasource {
     required String fullName,
     required String email,
     required String password,
+    required String confirmPassword,
   }) async {
-    final body = {'fullName': fullName, 'email': email, 'password': password};
+    final body = {
+      'fullName': fullName,
+      'email': email,
+      'password': password,
+      'confirmPassword': confirmPassword,
+    };
 
     final response = await _apiClient.dio.post(
       ApiEndpoints.userRegister,
