@@ -28,10 +28,12 @@ class AuthRepository implements IAuthRepository {
        _networkInfo = networkInfo;
 
   @override
-  Future<Either<Failure, bool>> register(AuthEntity user) async {
+  Future<Either<Failure, bool>> register({
+    required AuthEntity user,
+    required String confirmPassword,
+  }) async {
     if (await _networkInfo.isConnected) {
       try {
-        // Directly pass user.password, but make sure it's not null
         final password = user.password ?? '';
         final model = AuthApiModel.fromEntity(user);
 
@@ -39,6 +41,7 @@ class AuthRepository implements IAuthRepository {
           fullName: model.fullName,
           email: model.email,
           password: password,
+          confirmPassword: confirmPassword,
         );
 
         return const Right(true);

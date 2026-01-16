@@ -25,11 +25,17 @@ class AuthViewModel extends Notifier<AuthState> {
     required String fullName,
     required String email,
     required String password,
+    required String confirmPassword,
   }) async {
     state = state.copyWith(status: AuthStatus.loading);
     await Future.delayed(const Duration(seconds: 2));
     final result = await _registerUsecase(
-      RegisterParams(fullName: fullName, email: email, password: password),
+      RegisterParams(
+        fullName: fullName,
+        email: email,
+        password: password,
+        confirmPassword: confirmPassword,
+      ),
     );
     result.fold(
       (failure) => state = state.copyWith(

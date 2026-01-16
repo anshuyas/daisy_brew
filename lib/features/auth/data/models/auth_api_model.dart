@@ -32,7 +32,6 @@ class AuthApiModel {
       fullName: fullName,
       email: email,
       password: null,
-      profilePicture: null,
     );
   }
 
