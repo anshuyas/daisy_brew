@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shake/shake.dart';
 import '../widgets/category_chip_widget.dart';
 import '../widgets/product_card_widget.dart';
 import '../widgets/header_widget.dart';
@@ -16,12 +17,41 @@ class _HomeScreenState extends State<HomeScreen> {
   int selectedCategoryIndex = 0;
   int bottomNavIndex = 0;
 
+  ShakeDetector? _shakeDetector;
+
   final List<String> categories = [
     'Coffee',
     'Matcha',
     'Smoothies',
     'Bubble Tea',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    _shakeDetector = ShakeDetector.autoStart(
+      onPhoneShake: (event) {
+        _logoutUser();
+      },
+      shakeThresholdGravity: 2.7,
+    );
+  }
+
+  void _logoutUser() {
+    if (!mounted) return;
+
+    Navigator.pushReplacementNamed(context, '/login');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Logged out due to phone shake")),
+    );
+  }
+
+  @override
+  void dispose() {
+    _shakeDetector?.stopListening();
+    super.dispose();
+  }
 
   void _onCategoryTap(int index) {
     setState(() {
@@ -42,7 +72,8 @@ class _HomeScreenState extends State<HomeScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ProfileScreen(token: widget.token),
+          builder: (context) =>
+              ProfileScreen(token: widget.token, fullName: "User Name"),
         ),
       );
     }
