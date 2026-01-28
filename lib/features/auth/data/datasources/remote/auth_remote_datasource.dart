@@ -16,18 +16,15 @@ class AuthRemoteDatasource {
 
   AuthRemoteDatasource(this._apiClient);
 
-  Future<AuthApiModel> registerUser({
-    required String fullName,
-    required String email,
+  Future<void> registerUser({
+    required AuthApiModel model,
     required String password,
     required String confirmPassword,
   }) async {
-    final body = {
-      'fullName': fullName,
-      'email': email,
-      'password': password,
-      'confirmPassword': confirmPassword,
-    };
+    final body = model.toJson(
+      password: password,
+      confirmPassword: confirmPassword,
+    );
 
     final response = await _apiClient.dio.post(
       ApiEndpoints.userRegister,
@@ -35,15 +32,9 @@ class AuthRemoteDatasource {
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      final data = response.data;
-      final userData = data['data'] ?? {};
-      final token = data['token'] as String?;
-
-      if (token != null) await _storage.write(key: _tokenKey, value: token);
-
-      return AuthApiModel.fromJson({...userData, 'token': token});
+      return;
     } else {
-      throw Exception('Registration failed: ${response.data}');
+      throw Exception('Registration failed');
     }
   }
 

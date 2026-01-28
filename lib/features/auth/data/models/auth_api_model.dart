@@ -18,12 +18,17 @@ class AuthApiModel {
       id: json['_id'] ?? '',
       fullName: json['fullName'] ?? '',
       email: json['email'] ?? '',
-      token: json['token'], // JWT token from login/register
+      token: json['token'],
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {'fullName': fullName, 'email': email, 'password': null};
+  Map<String, dynamic> toJson({String? password, String? confirmPassword}) {
+    return {
+      'fullName': fullName,
+      'email': email,
+      if (password != null) 'password': password,
+      if (confirmPassword != null) 'confirmPassword': confirmPassword,
+    };
   }
 
   AuthEntity toEntity() {
@@ -31,16 +36,16 @@ class AuthApiModel {
       authId: id,
       fullName: fullName,
       email: email,
-      password: null,
+      token: token,
     );
   }
 
-  factory AuthApiModel.fromEntity(AuthEntity entity, {String? token}) {
+  factory AuthApiModel.fromEntity(AuthEntity entity) {
     return AuthApiModel(
       id: entity.authId ?? '',
       fullName: entity.fullName,
       email: entity.email,
-      token: token,
+      token: entity.token,
     );
   }
 }

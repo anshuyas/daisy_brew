@@ -24,15 +24,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
 
-    /// 🔹 Listen to login result
+    /// Listen to login state changes
     ref.listen(authViewModelProvider, (_, next) {
       if (next.status == AuthStatus.authenticated) {
-        showSnackbar(context, 'Login successful', color: Colors.green);
+        if (next.user != null && next.user!.token != null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => HomeScreen(token: next.user!.token!),
+            ),
+          );
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
+          showSnackbar(context, 'Login successful', color: Colors.green);
+        } else {
+          showSnackbar(
+            context,
+            'Login failed: token missing',
+            color: Colors.red,
+          );
+        }
       } else if (next.status == AuthStatus.error) {
         showSnackbar(
           context,
@@ -75,7 +85,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                // Email
+                // Email field
                 TextFormField(
                   controller: emailController,
                   decoration: InputDecoration(
@@ -97,7 +107,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Password
+                // Password field
                 TextFormField(
                   controller: passwordController,
                   obscureText: true,
@@ -118,7 +128,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 if (authState.status == AuthStatus.loading)
                   const CircularProgressIndicator(),
 
-                // Login Button
+                // Login button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

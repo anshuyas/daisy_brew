@@ -37,9 +37,13 @@ class AuthRepository implements IAuthRepository {
         final password = user.password ?? '';
         final model = AuthApiModel.fromEntity(user);
 
+        final body = model.toJson(
+          password: password,
+          confirmPassword: confirmPassword,
+        );
+
         await _authRemoteDatasource.registerUser(
-          fullName: model.fullName,
-          email: model.email,
+          model: model,
           password: password,
           confirmPassword: confirmPassword,
         );
@@ -106,5 +110,16 @@ class AuthRepository implements IAuthRepository {
     } catch (e) {
       return Left(ApiFailure(message: e.toString()));
     }
+  }
+}
+
+extension AuthApiModelExtension on AuthApiModel {
+  Map<String, dynamic> toJson({String? password, String? confirmPassword}) {
+    return {
+      'fullName': fullName,
+      'email': email,
+      'password': password,
+      'confirmPassword': confirmPassword,
+    };
   }
 }

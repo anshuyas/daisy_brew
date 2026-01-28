@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import '../widgets/category_chip_widget.dart';
 import '../widgets/product_card_widget.dart';
 import '../widgets/header_widget.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final String token;
+  const HomeScreen({super.key, required this.token});
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -30,9 +32,20 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onCartTap() {}
 
   void _onBottomNavTap(int index) {
+    if (index == bottomNavIndex) return;
+
     setState(() {
       bottomNavIndex = index;
     });
+
+    if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ProfileScreen(token: widget.token),
+        ),
+      );
+    }
   }
 
   @override

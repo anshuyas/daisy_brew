@@ -1,8 +1,7 @@
-import 'package:daisy_brew/features/auth/presentation/pages/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../dashboard/presentation/pages/home_screen.dart';
+import '../../../auth/presentation/pages/login_screen.dart';
 import '../../../auth/presentation/state/auth_state.dart';
 import '../../../auth/presentation/view_model/auth_view_model.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
@@ -27,7 +26,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
 
-    ref.listen(authViewModelProvider, (_, next) {
+    ref.listen<AuthState>(authViewModelProvider, (_, next) {
       if (next.status == AuthStatus.registered) {
         showSnackbar(
           context,
@@ -207,9 +206,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
 
+                // Navigate to Login
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -218,7 +217,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       onPressed: () {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (_) => const HomeScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const LoginScreen(),
+                          ),
                         );
                       },
                       child: const Text(

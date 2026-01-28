@@ -5,7 +5,8 @@ class AuthEntity extends Equatable {
   final String fullName;
   final String email;
   final String? password;
-  final String? profilePicture; // Optional for future
+  final String? profilePicture;
+  final String? token;
 
   const AuthEntity({
     this.authId,
@@ -13,6 +14,7 @@ class AuthEntity extends Equatable {
     required this.email,
     this.password,
     this.profilePicture,
+    this.token,
   });
 
   @override
@@ -22,5 +24,6 @@ class AuthEntity extends Equatable {
     email,
     password,
     profilePicture,
+    token,
   ];
 }
