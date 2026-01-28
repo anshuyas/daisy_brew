@@ -5,10 +5,13 @@ import 'package:dio/dio.dart';
 class ProfileScreen extends StatefulWidget {
   final String token;
   final String? initialProfilePicture;
+  final String fullName;
+
   const ProfileScreen({
     super.key,
     required this.token,
     this.initialProfilePicture,
+    this.fullName = "User",
   });
 
   @override
@@ -114,6 +117,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Widget _buildMenuCard({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Colors.brown[100],
+          child: Icon(icon, color: Colors.brown),
+        ),
+        title: Text(title, style: const TextStyle(fontSize: 16)),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        onTap: onTap,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -121,11 +145,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text("Profile"),
         backgroundColor: Colors.brown,
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Stack(
                 children: [
@@ -160,7 +183,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              Text(
+                widget.fullName, // Will show "User" if not passed
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
               _isUploading
                   ? const CircularProgressIndicator()
                   : ElevatedButton.icon(
@@ -169,6 +200,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       label: const Text("Change Profile Picture"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.brown,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 24,
                           vertical: 12,
@@ -179,6 +211,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                     ),
+              const SizedBox(height: 32),
+              _buildMenuCard(
+                icon: Icons.edit,
+                title: "Edit Profile",
+                onTap: () {},
+              ),
+              _buildMenuCard(
+                icon: Icons.notifications,
+                title: "Notifications",
+                onTap: () {},
+              ),
+              _buildMenuCard(
+                icon: Icons.location_on,
+                title: "Shipping Address",
+                onTap: () {},
+              ),
+              _buildMenuCard(
+                icon: Icons.lock,
+                title: "Change Password",
+                onTap: () {},
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.brown,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 14,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text("Sign Out", style: TextStyle(fontSize: 16)),
+              ),
             ],
           ),
         ),
