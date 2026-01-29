@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shake/shake.dart';
+import 'package:proximity_sensor/proximity_sensor.dart';
 import '../widgets/category_chip_widget.dart';
 import '../widgets/product_card_widget.dart';
 import '../widgets/header_widget.dart';
@@ -19,6 +21,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   ShakeDetector? _shakeDetector;
 
+  StreamSubscription<dynamic>? _proximitySubscription;
+
+  bool isDarkMode = false;
+  DateTime? _lastProximityTrigger;
+
   final List<String> categories = [
     'Coffee',
     'Matcha',
@@ -36,6 +43,41 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       shakeThresholdGravity: 2.7,
     );
+
+    try {
+      _proximitySubscription = ProximitySensor.events.listen((event) {
+        if (event > 0) {
+          _toggleThemeWithCooldown();
+        }
+      });
+    } catch (e) {
+      debugPrint("Proximity sensor error: $e");
+    }
+  }
+
+  void _toggleThemeWithCooldown() {
+    final now = DateTime.now();
+
+    if (_lastProximityTrigger != null &&
+        now.difference(_lastProximityTrigger!).inSeconds < 2) {
+      return;
+    }
+
+    _lastProximityTrigger = now;
+
+    if (!mounted) return;
+
+    setState(() {
+      isDarkMode = !isDarkMode;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isDarkMode ? "Dark Mode Activated" : "Light Mode Activated",
+        ),
+      ),
+    );
   }
 
   void _logoutUser() {
@@ -50,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _shakeDetector?.stopListening();
+    _proximitySubscription?.cancel();
     super.dispose();
   }
 
@@ -82,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6EBDD),
+      backgroundColor: isDarkMode ? Colors.black : const Color(0xFFF6EBDD),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.brown,
@@ -125,6 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 16),
+
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
