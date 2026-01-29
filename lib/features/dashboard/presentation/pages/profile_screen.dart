@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String token;
@@ -29,6 +31,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _uploadedImageUrl = widget.initialProfilePicture;
+  }
+
+  Future<bool> _requestPermissions() async {
+    final cameraStatus = await Permission.camera.request();
+
+    PermissionStatus storageStatus;
+    if (Platform.isAndroid) {
+      if (await Permission.photos.isGranted ||
+          await Permission.storage.isGranted) {
+        storageStatus = PermissionStatus.granted;
+      } else {
+        storageStatus = await Permission.photos.request();
+        if (storageStatus.isDenied) {
+          storageStatus = await Permission.storage.request();
+        }
+      }
+    } else {
+      storageStatus = PermissionStatus.granted;
+    }
+
+    return cameraStatus.isGranted && storageStatus.isGranted;
   }
 
   void _showImageSourceActionSheet() {
@@ -61,10 +84,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
+      // Request permissions
+      bool granted = await _requestPermissions();
+      if (!granted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Permissions denied")));
+        return;
+      }
+
       final XFile? image = await _picker.pickImage(
         source: source,
         imageQuality: 80,
       );
+
       if (image != null) {
         setState(() => _image = image);
         await _uploadProfilePicture(image);
@@ -79,7 +112,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _uploadProfilePicture(XFile image) async {
     setState(() => _isUploading = true);
 
-    final url = "http://10.0.2.2:3000/api/v1/profile/upload";
+    final baseUrl = Platform.isAndroid
+        ? 'http://192.168.55.204:3000/api/v1' // real device
+        : 'http://10.0.2.2:3000/api/v1'; // emulator
+
+    final url = "$baseUrl/profile/upload";
 
     final formData = FormData.fromMap({
       "profilePicture": await MultipartFile.fromFile(
@@ -93,13 +130,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       final response = await dio.post(url, data: formData);
-
       final filename = response.data['filename'] as String?;
+
       if (filename != null) {
         setState(() {
           _uploadedImageUrl =
-              "http://10.0.2.2:3000/public/profile_pictures/$filename";
+              "http://192.168.55.204:3000/public/profile_pictures/$filename";
         });
+
+        // Directly show success message here
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Profile picture updated successfully")),
         );
@@ -185,13 +224,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                widget.fullName, // Will show "User" if not passed
+                widget.fullName,
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               _isUploading
                   ? const CircularProgressIndicator()
                   : ElevatedButton.icon(
