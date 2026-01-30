@@ -15,12 +15,14 @@ class LocalDatabaseFailure extends Failure {
   }) : super(message);
 }
 
-// API Failure with status code
 class ApiFailure extends Failure {
   final int? statusCode;
 
-  const ApiFailure({required String message, this.statusCode}) : super(message);
+  const ApiFailure({String message = "API Failure", this.statusCode})
+    : super(message);
+}
 
-  @override
-  List<Object?> get props => [message, statusCode];
+class NetworkFailure extends Failure {
+  const NetworkFailure({String message = "No internet connection"})
+    : super(message);
 }

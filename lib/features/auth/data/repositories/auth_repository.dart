@@ -4,6 +4,7 @@ import 'package:daisy_brew/features/auth/data/datasources/remote/auth_remote_dat
 import 'package:daisy_brew/features/auth/data/models/auth_api_model.dart';
 import 'package:daisy_brew/features/auth/domain/entities/auth_entity.dart';
 import 'package:daisy_brew/features/auth/domain/repositories/auth_repository.dart';
+import 'package:daisy_brew/features/auth/domain/usecases/register_usecase.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,7 +29,8 @@ class AuthRepository implements IAuthRepository {
        _networkInfo = networkInfo;
 
   @override
-  Future<Either<Failure, bool>> register({
+  Future<Either<Failure, bool>> register(
+    RegisterParams params, {
     required AuthEntity user,
     required String confirmPassword,
   }) async {
@@ -37,9 +39,13 @@ class AuthRepository implements IAuthRepository {
         final password = user.password ?? '';
         final model = AuthApiModel.fromEntity(user);
 
+        final body = model.toJson(
+          password: password,
+          confirmPassword: confirmPassword,
+        );
+
         await _authRemoteDatasource.registerUser(
-          fullName: model.fullName,
-          email: model.email,
+          model: model,
           password: password,
           confirmPassword: confirmPassword,
         );
@@ -106,5 +112,16 @@ class AuthRepository implements IAuthRepository {
     } catch (e) {
       return Left(ApiFailure(message: e.toString()));
     }
+  }
+}
+
+extension AuthApiModelExtension on AuthApiModel {
+  Map<String, dynamic> toJson({String? password, String? confirmPassword}) {
+    return {
+      'fullName': fullName,
+      'email': email,
+      'password': password,
+      'confirmPassword': confirmPassword,
+    };
   }
 }

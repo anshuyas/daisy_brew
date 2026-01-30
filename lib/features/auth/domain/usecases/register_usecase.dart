@@ -43,6 +43,7 @@ class RegisterUsecase implements UseCaseWithParams<bool, RegisterParams> {
       password: params.password,
     );
     return _authRepository.register(
+      params,
       user: authEntity,
       confirmPassword: params.confirmPassword,
     );

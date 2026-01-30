@@ -1,10 +1,15 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shake/shake.dart';
+import 'package:proximity_sensor/proximity_sensor.dart';
 import '../widgets/category_chip_widget.dart';
 import '../widgets/product_card_widget.dart';
 import '../widgets/header_widget.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final String token;
+  const HomeScreen({super.key, required this.token});
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -14,12 +19,82 @@ class _HomeScreenState extends State<HomeScreen> {
   int selectedCategoryIndex = 0;
   int bottomNavIndex = 0;
 
+  ShakeDetector? _shakeDetector;
+
+  StreamSubscription<dynamic>? _proximitySubscription;
+
+  bool isDarkMode = false;
+  DateTime? _lastProximityTrigger;
+
   final List<String> categories = [
     'Coffee',
     'Matcha',
     'Smoothies',
     'Bubble Tea',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    _shakeDetector = ShakeDetector.autoStart(
+      onPhoneShake: (event) {
+        _logoutUser();
+      },
+      shakeThresholdGravity: 2.7,
+    );
+
+    try {
+      _proximitySubscription = ProximitySensor.events.listen((event) {
+        if (event > 0) {
+          _toggleThemeWithCooldown();
+        }
+      });
+    } catch (e) {
+      debugPrint("Proximity sensor error: $e");
+    }
+  }
+
+  void _toggleThemeWithCooldown() {
+    final now = DateTime.now();
+
+    if (_lastProximityTrigger != null &&
+        now.difference(_lastProximityTrigger!).inSeconds < 2) {
+      return;
+    }
+
+    _lastProximityTrigger = now;
+
+    if (!mounted) return;
+
+    setState(() {
+      isDarkMode = !isDarkMode;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isDarkMode ? "Dark Mode Activated" : "Light Mode Activated",
+        ),
+      ),
+    );
+  }
+
+  void _logoutUser() {
+    if (!mounted) return;
+
+    Navigator.pushReplacementNamed(context, '/login');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Logged out due to phone shake")),
+    );
+  }
+
+  @override
+  void dispose() {
+    _shakeDetector?.stopListening();
+    _proximitySubscription?.cancel();
+    super.dispose();
+  }
 
   void _onCategoryTap(int index) {
     setState(() {
@@ -30,15 +105,27 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onCartTap() {}
 
   void _onBottomNavTap(int index) {
+    if (index == bottomNavIndex) return;
+
     setState(() {
       bottomNavIndex = index;
     });
+
+    if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              ProfileScreen(token: widget.token, fullName: "User Name"),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6EBDD),
+      backgroundColor: isDarkMode ? Colors.black : const Color(0xFFF6EBDD),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.brown,
@@ -81,6 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 16),
+
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
