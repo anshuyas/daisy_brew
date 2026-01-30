@@ -1,15 +1,35 @@
+import 'package:daisy_brew/core/error/failures.dart';
+import 'package:daisy_brew/features/auth/domain/entities/auth_entity.dart';
+import 'package:daisy_brew/features/auth/domain/repositories/auth_repository.dart';
+import 'package:daisy_brew/features/auth/domain/usecases/register_usecase.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:daisy_brew/features/auth/domain/usecases/register_usecase.dart';
-import 'package:daisy_brew/core/error/failures.dart';
 
-class MockRegisterUsecase extends Mock implements RegisterUsecase {}
+class MockAuthRepository extends Mock implements IAuthRepository {}
 
 void main() {
-  late MockRegisterUsecase mockRegisterUsecase;
+  late RegisterUsecase usecase;
+  late MockAuthRepository mockRepository;
+
+  setUp(() {
+    mockRepository = MockAuthRepository();
+    usecase = RegisterUsecase(authRepository: mockRepository);
+  });
+
+  const tFullName = 'Test User';
+  const tEmail = 'test@example.com';
+  const tPassword = 'password123';
+  const tConfirmPassword = 'password123';
 
   setUpAll(() {
+    registerFallbackValue(
+      AuthEntity(
+        fullName: 'fallback',
+        email: 'fallback@email.com',
+        password: 'fallback',
+      ),
+    );
     registerFallbackValue(
       const RegisterParams(
         fullName: 'fallback',
@@ -20,24 +40,19 @@ void main() {
     );
   });
 
-  setUp(() {
-    mockRegisterUsecase = MockRegisterUsecase();
-  });
-
   group('RegisterUsecase', () {
-    const tFullName = 'Test User';
-    const tEmail = 'test@example.com';
-    const tPassword = 'password123';
-    const tConfirmPassword = 'password123';
-
     test('should return true when registration is successful', () async {
       // Arrange
       when(
-        () => mockRegisterUsecase(any()),
+        () => mockRepository.register(
+          any(),
+          user: any(named: 'user'),
+          confirmPassword: any(named: 'confirmPassword'),
+        ),
       ).thenAnswer((_) async => const Right(true));
 
       // Act
-      final result = await mockRegisterUsecase(
+      final result = await usecase(
         const RegisterParams(
           fullName: tFullName,
           email: tEmail,
@@ -48,18 +63,26 @@ void main() {
 
       // Assert
       expect(result, const Right(true));
-      verify(() => mockRegisterUsecase(any())).called(1);
+      verify(
+        () => mockRepository.register(
+          any(),
+          user: any(named: 'user'),
+          confirmPassword: any(named: 'confirmPassword'),
+        ),
+      ).called(1);
     });
 
-    test('should return Failure when registration fails', () async {
-      // Arrange
+    test('should return failure when registration fails', () async {
       const failure = ApiFailure(message: 'Email already exists');
       when(
-        () => mockRegisterUsecase(any()),
+        () => mockRepository.register(
+          any(),
+          user: any(named: 'user'),
+          confirmPassword: any(named: 'confirmPassword'),
+        ),
       ).thenAnswer((_) async => const Left(failure));
 
-      // Act
-      final result = await mockRegisterUsecase(
+      final result = await usecase(
         const RegisterParams(
           fullName: tFullName,
           email: tEmail,
@@ -68,21 +91,36 @@ void main() {
         ),
       );
 
-      // Assert
       expect(result, const Left(failure));
-      verify(() => mockRegisterUsecase(any())).called(1);
+      verify(
+        () => mockRepository.register(
+          any(),
+          user: any(named: 'user'),
+          confirmPassword: any(named: 'confirmPassword'),
+        ),
+      ).called(1);
     });
 
-    test('should pass correct parameters to usecase', () async {
-      // Arrange
-      RegisterParams? capturedParams;
-      when(() => mockRegisterUsecase(any())).thenAnswer((invocation) {
+    test('should pass correct values to repository', () async {
+      late RegisterParams capturedParams;
+      late AuthEntity capturedUser;
+      late String capturedConfirmPassword;
+
+      when(
+        () => mockRepository.register(
+          any(),
+          user: any(named: 'user'),
+          confirmPassword: any(named: 'confirmPassword'),
+        ),
+      ).thenAnswer((invocation) async {
         capturedParams = invocation.positionalArguments[0] as RegisterParams;
-        return Future.value(const Right(true));
+        capturedUser = invocation.namedArguments[#user] as AuthEntity;
+        capturedConfirmPassword =
+            invocation.namedArguments[#confirmPassword] as String;
+        return const Right(true);
       });
 
-      // Act
-      await mockRegisterUsecase(
+      await usecase(
         const RegisterParams(
           fullName: tFullName,
           email: tEmail,
@@ -91,11 +129,11 @@ void main() {
         ),
       );
 
-      // Assert
-      expect(capturedParams?.fullName, tFullName);
-      expect(capturedParams?.email, tEmail);
-      expect(capturedParams?.password, tPassword);
-      expect(capturedParams?.confirmPassword, tConfirmPassword);
+      expect(capturedParams.fullName, tFullName);
+      expect(capturedUser.fullName, tFullName);
+      expect(capturedUser.email, tEmail);
+      expect(capturedUser.password, tPassword);
+      expect(capturedConfirmPassword, tConfirmPassword);
     });
   });
 }
