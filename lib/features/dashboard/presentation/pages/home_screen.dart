@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:daisy_brew/features/dashboard/presentation/pages/cart_screen.dart';
+import 'package:daisy_brew/features/dashboard/presentation/pages/notification_screen.dart';
+import 'package:daisy_brew/features/dashboard/presentation/pages/order_history_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shake/shake.dart';
 import 'package:proximity_sensor/proximity_sensor.dart';
@@ -118,7 +120,22 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavIndex = index;
     });
 
-    if (index == 3) {
+    if (index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OrderHistoryScreen(token: widget.token),
+        ),
+      );
+    } else if (index == 2) {
+      // Notifications
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => NotificationScreen(token: widget.token),
+        ),
+      );
+    } else if (index == 3) {
       Navigator.push(
         context,
         MaterialPageRoute(
