@@ -32,7 +32,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (_) => HomeScreen(token: next.user!.token!),
+              builder: (context) => HomeScreen(
+                token: next.user!.token!,
+                fullName: next.user!.fullName,
+              ),
             ),
           );
 

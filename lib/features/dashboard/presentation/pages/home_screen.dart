@@ -10,7 +10,8 @@ import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String token;
-  const HomeScreen({super.key, required this.token});
+  final String fullName;
+  const HomeScreen({super.key, required this.token, required this.fullName});
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -122,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         MaterialPageRoute(
           builder: (context) =>
-              ProfileScreen(token: widget.token, fullName: "User Name"),
+              ProfileScreen(token: widget.token, fullName: widget.fullName),
         ),
       );
     }
@@ -155,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            HeaderWidget(onCartTap: _onCartTap),
+            HeaderWidget(onCartTap: _onCartTap, fullName: widget.fullName),
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),

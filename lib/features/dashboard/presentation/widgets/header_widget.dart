@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 
 class HeaderWidget extends StatelessWidget {
   final VoidCallback onCartTap;
+  final String fullName;
 
-  const HeaderWidget({super.key, required this.onCartTap});
+  const HeaderWidget({
+    super.key,
+    required this.onCartTap,
+    required this.fullName,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +39,8 @@ class HeaderWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Good to see you, Username!',
+          Text(
+            'Good to see you, $fullName!',
             style: TextStyle(color: Colors.white, fontSize: 16),
           ),
           const SizedBox(height: 12),

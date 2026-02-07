@@ -135,7 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (filename != null) {
         setState(() {
           _uploadedImageUrl =
-              "http://192.168.55.204:3000/public/profile_pictures/$filename";
+              "http://192.168.254.13:3000/public/profile_pictures/$filename";
         });
 
         // Directly show success message here

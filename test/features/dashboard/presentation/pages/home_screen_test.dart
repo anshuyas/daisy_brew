@@ -7,7 +7,9 @@ import 'package:daisy_brew/features/dashboard/presentation/pages/profile_screen.
 void main() {
   testWidgets('HomeScreen UI renders and navigation works', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(home: HomeScreen(token: 'dummy_token')),
+      MaterialApp(
+        home: HomeScreen(token: 'dummy_token', fullName: 'Harry Styles'),
+      ),
     );
 
     // Check HeaderWidget exists
