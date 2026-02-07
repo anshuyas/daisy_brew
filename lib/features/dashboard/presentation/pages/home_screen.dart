@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:daisy_brew/features/dashboard/presentation/pages/cart_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shake/shake.dart';
 import 'package:proximity_sensor/proximity_sensor.dart';
@@ -102,7 +103,12 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _onCartTap() {}
+  void _onCartTap() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CartScreen()),
+    );
+  }
 
   void _onBottomNavTap(int index) {
     if (index == bottomNavIndex) return;
