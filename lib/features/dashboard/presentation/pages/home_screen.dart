@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:daisy_brew/features/dashboard/domain/entities/product_entity.dart';
+import 'package:daisy_brew/features/dashboard/presentation/pages/product_detail_screen.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/cart_screen.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/notification_screen.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/order_history_screen.dart';
@@ -38,6 +40,31 @@ class _HomeScreenState extends State<HomeScreen> {
     'Matcha',
     'Smoothies',
     'Bubble Tea',
+  ];
+
+  final List<Product> products = [
+    Product(
+      name: 'Cappuccino',
+      image: 'assets/images/cappucino.jpg',
+      price: 250,
+    ),
+    Product(
+      name: 'Americano',
+      image: 'assets/images/americano.jpg',
+      price: 150,
+    ),
+    Product(name: 'Espresso', image: 'assets/images/espresso.jpg', price: 100),
+    Product(name: 'Latte', image: 'assets/images/latte.jpg', price: 200),
+    Product(
+      name: 'Iced Machhiato',
+      image: 'assets/images/iced macchiato.jpg',
+      price: 295,
+    ),
+    Product(
+      name: 'Ristretto',
+      image: 'assets/images/ristretto.webp',
+      price: 125,
+    ),
   ];
 
   @override
@@ -218,46 +245,36 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 16),
+
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 0.75,
-                  children: const [
-                    ProductCardWidget(
-                      name: 'Cappuccino',
-                      price: 'Rs. 250',
-                      imagePath: 'assets/images/cappucino.jpg',
-                    ),
-                    ProductCardWidget(
-                      name: 'Americano',
-                      price: 'Rs. 150',
-                      imagePath: 'assets/images/americano.jpg',
-                    ),
-                    ProductCardWidget(
-                      name: 'Espresso',
-                      price: 'Rs. 100',
-                      imagePath: 'assets/images/espresso.jpg',
-                    ),
-                    ProductCardWidget(
-                      name: 'Latte',
-                      price: 'Rs. 200',
-                      imagePath: 'assets/images/latte.jpg',
-                    ),
-                    ProductCardWidget(
-                      name: 'Iced Machhiato',
-                      price: 'Rs. 295',
-                      imagePath: 'assets/images/iced macchiato.jpg',
-                    ),
-                    ProductCardWidget(
-                      name: 'Ristretto',
-                      price: 'Rs. 125',
-                      imagePath: 'assets/images/ristretto.webp',
-                    ),
-                  ],
+                child: GridView.builder(
+                  itemCount: products.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.75,
+                  ),
+                  itemBuilder: (context, index) {
+                    final product = products[index];
+
+                    return ProductCardWidget(
+                      name: product.name,
+                      price: 'Rs. ${product.price}',
+                      imagePath: product.image,
+                      onAddTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                ProductDetailScreen(product: product),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
             ),
