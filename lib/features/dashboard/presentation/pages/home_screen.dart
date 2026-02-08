@@ -5,6 +5,7 @@ import 'package:daisy_brew/features/dashboard/presentation/pages/order_history_s
 import 'package:flutter/material.dart';
 import 'package:shake/shake.dart';
 import 'package:proximity_sensor/proximity_sensor.dart';
+import 'package:dio/dio.dart';
 import '../widgets/category_chip_widget.dart';
 import '../widgets/product_card_widget.dart';
 import '../widgets/header_widget.dart';
@@ -13,6 +14,7 @@ import 'profile_screen.dart';
 class HomeScreen extends StatefulWidget {
   final String token;
   final String fullName;
+
   const HomeScreen({super.key, required this.token, required this.fullName});
 
   @override
@@ -24,11 +26,12 @@ class _HomeScreenState extends State<HomeScreen> {
   int bottomNavIndex = 0;
 
   ShakeDetector? _shakeDetector;
-
   StreamSubscription<dynamic>? _proximitySubscription;
 
   bool isDarkMode = false;
   DateTime? _lastProximityTrigger;
+
+  String? profileImageUrl;
 
   final List<String> categories = [
     'Coffee',
@@ -40,40 +43,54 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _fetchProfilePicture();
 
     _shakeDetector = ShakeDetector.autoStart(
-      onPhoneShake: (event) {
-        _logoutUser();
-      },
+      onPhoneShake: (event) => _logoutUser(),
       shakeThresholdGravity: 2.7,
     );
 
     try {
       _proximitySubscription = ProximitySensor.events.listen((event) {
-        if (event > 0) {
-          _toggleThemeWithCooldown();
-        }
+        if (event > 0) _toggleThemeWithCooldown();
       });
     } catch (e) {
       debugPrint("Proximity sensor error: $e");
     }
   }
 
+  Future<void> _fetchProfilePicture() async {
+    try {
+      final dio = Dio();
+      dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
+      final baseUrl = 'http://192.168.254.200:3000/api/v1';
+      final response = await dio.get('$baseUrl/profile');
+
+      if (response.data != null && response.data['profilePicture'] != null) {
+        final imageUrl =
+            'http://192.168.254.200:3000/public/profile_pictures/${response.data['profilePicture']}';
+
+        setState(() {
+          profileImageUrl = imageUrl;
+        });
+
+        debugPrint("Profile image fetched: $imageUrl");
+      }
+    } catch (e) {
+      debugPrint('Failed to fetch profile picture: $e');
+    }
+  }
+
   void _toggleThemeWithCooldown() {
     final now = DateTime.now();
-
     if (_lastProximityTrigger != null &&
-        now.difference(_lastProximityTrigger!).inSeconds < 2) {
+        now.difference(_lastProximityTrigger!).inSeconds < 2)
       return;
-    }
 
     _lastProximityTrigger = now;
-
     if (!mounted) return;
 
-    setState(() {
-      isDarkMode = !isDarkMode;
-    });
+    setState(() => isDarkMode = !isDarkMode);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -86,7 +103,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _logoutUser() {
     if (!mounted) return;
-
     Navigator.pushReplacementNamed(context, '/login');
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Logged out due to phone shake")),
@@ -101,9 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onCategoryTap(int index) {
-    setState(() {
-      selectedCategoryIndex = index;
-    });
+    setState(() => selectedCategoryIndex = index);
   }
 
   void _onCartTap() {
@@ -116,9 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onBottomNavTap(int index) {
     if (index == bottomNavIndex) return;
 
-    setState(() {
-      bottomNavIndex = index;
-    });
+    setState(() => bottomNavIndex = index);
 
     if (index == 1) {
       Navigator.push(
@@ -128,7 +140,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     } else if (index == 2) {
-      // Notifications
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -136,11 +147,22 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     } else if (index == 3) {
+      // Navigate to ProfileScreen with callback to update profile picture
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              ProfileScreen(token: widget.token, fullName: widget.fullName),
+          builder: (context) => ProfileScreen(
+            token: widget.token,
+            fullName: widget.fullName,
+            initialProfilePicture: profileImageUrl,
+            onProfileUpdated: (newUrl) {
+              debugPrint("New profile image URL received: $newUrl");
+
+              setState(() {
+                profileImageUrl = newUrl; // update profile picture immediately
+              });
+            },
+          ),
         ),
       );
     }
@@ -173,7 +195,11 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            HeaderWidget(onCartTap: _onCartTap, fullName: widget.fullName),
+            HeaderWidget(
+              onCartTap: _onCartTap,
+              fullName: widget.fullName,
+              profilePictureUrl: profileImageUrl, // pass the image URL
+            ),
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -192,7 +218,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),

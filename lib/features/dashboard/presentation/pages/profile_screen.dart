@@ -8,12 +8,14 @@ class ProfileScreen extends StatefulWidget {
   final String token;
   final String? initialProfilePicture;
   final String fullName;
+  final void Function(String newURL) onProfileUpdated;
 
   const ProfileScreen({
     super.key,
     required this.token,
     this.initialProfilePicture,
     this.fullName = "User",
+    required this.onProfileUpdated,
   });
 
   @override
@@ -113,7 +115,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isUploading = true);
 
     final baseUrl = Platform.isAndroid
-        ? 'http://192.168.55.204:3000/api/v1' // real device
+        ? 'http://192.168.254.200:3000/api/v1' // real device
         : 'http://10.0.2.2:3000/api/v1'; // emulator
 
     final url = "$baseUrl/profile/upload";
@@ -130,14 +132,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       final response = await dio.post(url, data: formData);
-      final filename = response.data['filename'] as String?;
+      final newURL = response.data['filename'] as String?;
 
-      if (filename != null) {
+      if (newURL != null) {
+        final fullUrl =
+            "http://192.168.254.200:3000/public/profile_pictures/$newURL";
+
         setState(() {
-          _uploadedImageUrl =
-              "http://192.168.254.13:3000/public/profile_pictures/$filename";
+          _uploadedImageUrl = fullUrl;
         });
 
+        widget.onProfileUpdated(fullUrl);
         // Directly show success message here
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Profile picture updated successfully")),
@@ -205,6 +210,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           )
                         : null,
                   ),
+                  // Loading overlay
+                  if (_isUploading)
+                    Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        color: Colors.black45,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      ),
+                    ),
+                  // Camera icon
                   Positioned(
                     bottom: 0,
                     right: 0,
@@ -223,32 +242,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              Text(
-                widget.fullName,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
+              ElevatedButton.icon(
+                onPressed: _showImageSourceActionSheet,
+                icon: const Icon(Icons.upload_file),
+                label: const Text("Change Profile Picture"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.brown,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  textStyle: const TextStyle(fontSize: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
-              _isUploading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton.icon(
-                      onPressed: _showImageSourceActionSheet,
-                      icon: const Icon(Icons.upload_file),
-                      label: const Text("Change Profile Picture"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.brown,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        textStyle: const TextStyle(fontSize: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
               const SizedBox(height: 32),
               _buildMenuCard(
                 icon: Icons.edit,

@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class HeaderWidget extends StatelessWidget {
   final VoidCallback onCartTap;
   final String fullName;
+  final String? profilePictureUrl;
 
   const HeaderWidget({
     super.key,
     required this.onCartTap,
     required this.fullName,
+    this.profilePictureUrl,
   });
 
   @override
@@ -27,10 +29,16 @@ class HeaderWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const CircleAvatar(
+              // Profile picture
+              CircleAvatar(
                 radius: 18,
                 backgroundColor: Colors.white,
-                child: Icon(Icons.person, color: Colors.brown),
+                backgroundImage: profilePictureUrl != null
+                    ? NetworkImage(profilePictureUrl!)
+                    : null,
+                child: profilePictureUrl == null
+                    ? const Icon(Icons.person, color: Colors.brown)
+                    : null,
               ),
               GestureDetector(
                 onTap: onCartTap,
@@ -41,7 +49,7 @@ class HeaderWidget extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'Good to see you, $fullName!',
-            style: TextStyle(color: Colors.white, fontSize: 16),
+            style: const TextStyle(color: Colors.white, fontSize: 16),
           ),
           const SizedBox(height: 12),
           Container(

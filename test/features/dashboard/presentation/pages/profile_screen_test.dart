@@ -7,7 +7,11 @@ void main() {
     testWidgets('should display user full name', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ProfileScreen(token: 'fake_token', fullName: 'Test User'),
+          home: ProfileScreen(
+            token: 'fake_token',
+            fullName: 'Test User',
+            onProfileUpdated: (String newURL) {},
+          ),
         ),
       );
 
@@ -18,7 +22,11 @@ void main() {
     testWidgets('should find Change Profile Picture button', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ProfileScreen(token: 'fake_token', fullName: 'Test User'),
+          home: ProfileScreen(
+            token: 'fake_token',
+            fullName: 'Test User',
+            onProfileUpdated: (String newURL) {},
+          ),
         ),
       );
 
@@ -29,7 +37,11 @@ void main() {
     testWidgets('should find Sign Out button', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ProfileScreen(token: 'fake_token', fullName: 'Test User'),
+          home: ProfileScreen(
+            token: 'fake_token',
+            fullName: 'Test User',
+            onProfileUpdated: (String newURL) {},
+          ),
         ),
       );
 
@@ -40,7 +52,11 @@ void main() {
     testWidgets('should find all menu cards', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ProfileScreen(token: 'fake_token', fullName: 'Test User'),
+          home: ProfileScreen(
+            token: 'fake_token',
+            fullName: 'Test User',
+            onProfileUpdated: (String newURL) {},
+          ),
         ),
       );
 
