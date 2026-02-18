@@ -42,30 +42,153 @@ class _HomeScreenState extends State<HomeScreen> {
     'Bubble Tea',
   ];
 
-  final List<Product> products = [
-    Product(
-      name: 'Cappuccino',
-      image: 'assets/images/cappucino.jpg',
-      price: 250,
-    ),
-    Product(
-      name: 'Americano',
-      image: 'assets/images/americano.jpg',
-      price: 150,
-    ),
-    Product(name: 'Espresso', image: 'assets/images/espresso.jpg', price: 100),
-    Product(name: 'Latte', image: 'assets/images/latte.jpg', price: 200),
-    Product(
-      name: 'Iced Machhiato',
-      image: 'assets/images/iced macchiato.jpg',
-      price: 295,
-    ),
-    Product(
-      name: 'Ristretto',
-      image: 'assets/images/ristretto.webp',
-      price: 125,
-    ),
-  ];
+  final Map<String, List<Product>> categoryProducts = {
+    'Coffee': [
+      Product(
+        name: 'Cappuccino',
+        image: 'assets/images/cappucino.jpg',
+        price: 250,
+      ),
+      Product(
+        name: 'Americano',
+        image: 'assets/images/americano.jpg',
+        price: 150,
+      ),
+      Product(
+        name: 'Espresso',
+        image: 'assets/images/espresso.jpg',
+        price: 100,
+      ),
+      Product(name: 'Latte', image: 'assets/images/latte.jpg', price: 200),
+      Product(
+        name: 'Test',
+        image: 'assets/images/banana-smoothie.webp',
+        price: 200,
+      ),
+      Product(
+        name: 'Iced Macchiato',
+        image: 'assets/images/iced macchiato.jpg',
+        price: 295,
+      ),
+      Product(
+        name: 'Ristretto',
+        image: 'assets/images/ristretto.webp',
+        price: 125,
+      ),
+    ],
+
+    'Matcha': [
+      Product(
+        name: 'Matcha Latte',
+        image: 'assets/images/matcha-latte.avif',
+        price: 350,
+      ),
+      Product(
+        name: 'Strawberry Matcha',
+        image: 'assets/images/strawberry-matcha.png',
+        price: 380,
+      ),
+      Product(
+        name: 'Coconut Matcha Cloud',
+        image: 'assets/images/coconut-matcha-cloud.jpg',
+        price: 390,
+      ),
+      Product(
+        name: 'Vanilla Matcha',
+        image: 'assets/images/vanilla-matcha.jpg',
+        price: 390,
+      ),
+      Product(
+        name: 'Matcha Hot Chocolate',
+        image: 'assets/images/matcha-hot-choc.jpg',
+        price: 370,
+      ),
+      Product(
+        name: 'Honey Matcha',
+        image: 'assets/images/honey-matcha.jpg',
+        price: 380,
+      ),
+      Product(
+        name: 'Mango Matcha Latte',
+        image: 'assets/images/mango-matcha-latte.webp',
+        price: 395,
+      ),
+    ],
+    'Smoothies': [
+      Product(
+        name: 'Blueberry Smoothie',
+        image: 'assets/images/blueberry-smoothie.webp',
+        price: 250,
+      ),
+      Product(
+        name: 'Strawberry Smoothie',
+        image: 'assets/images/strawberry-smoothie.png',
+        price: 250,
+      ),
+      Product(
+        name: 'Banana Smoothie',
+        image: 'assets/images/banana-smoothie.webp',
+        price: 200,
+      ),
+      Product(
+        name: 'Mango Smoothie',
+        image: 'assets/images/mango-smoothie.png',
+        price: 230,
+      ),
+      Product(
+        name: 'Watermelon Smoothie',
+        image: 'assets/images/watermelon-smoothie.png',
+        price: 240,
+      ),
+      Product(
+        name: 'Pineapple Smoothie',
+        image: 'assets/images/pineapple-smoothie.png',
+        price: 260,
+      ),
+      Product(
+        name: 'Cherry Smoothie',
+        image: 'assets/images/cherry-smoothie.avif',
+        price: 270,
+      ),
+    ],
+    'Bubble Tea': [
+      Product(
+        name: 'Taro BubbleTea',
+        image: 'assets/images/taro-bubble.jpg',
+        price: 220,
+      ),
+      Product(
+        name: 'Chocolate BubbleTea',
+        image: 'assets/images/chocolate-bubble.png',
+        price: 220,
+      ),
+      Product(
+        name: 'Mango BubbleTea',
+        image: 'assets/images/mango-bubble.png',
+        price: 220,
+      ),
+      Product(
+        name: 'Strawberry BubbleTea',
+        image: 'assets/images/strawberry-bubble.png',
+        price: 220,
+      ),
+      Product(
+        name: 'HoneyDew BubbleTea',
+        image: 'assets/images/honeydew-bubble.jpg',
+        price: 220,
+      ),
+      Product(
+        name: 'Coconut BubbleTea',
+        image: 'assets/images/coconut-bubble.webp',
+        price: 220,
+      ),
+      Product(
+        name: 'Matcha BubbleTea',
+        image: 'assets/images/matcha-bubble.jpg',
+        price: 220,
+      ),
+    ],
+  };
 
   @override
   void initState() {
@@ -90,12 +213,12 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final dio = Dio();
       dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
-      final baseUrl = 'http://192.168.254.200:3000/api/v1';
+      final baseUrl = 'http://192.168.254.27:3000/api/v1';
       final response = await dio.get('$baseUrl/profile');
 
       if (response.data != null && response.data['profilePicture'] != null) {
         final imageUrl =
-            'http://192.168.254.200:3000/public/profile_pictures/${response.data['profilePicture']}';
+            'http://192.168.254.27:3000/public/profile_pictures/${response.data['profilePicture']}';
 
         setState(() {
           profileImageUrl = imageUrl;
@@ -197,6 +320,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentProducts =
+        categoryProducts[categories[selectedCategoryIndex]] ?? [];
+
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.black : const Color(0xFFF6EBDD),
       bottomNavigationBar: BottomNavigationBar(
@@ -250,7 +376,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: GridView.builder(
-                  itemCount: products.length,
+                  itemCount: currentProducts.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 12,
@@ -258,7 +384,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     childAspectRatio: 0.75,
                   ),
                   itemBuilder: (context, index) {
-                    final product = products[index];
+                    final product = currentProducts[index];
 
                     return ProductCardWidget(
                       name: product.name,

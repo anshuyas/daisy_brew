@@ -192,7 +192,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
             ],
 
-            /// 💳 Payment Method
+            //Payment Method
             const Text(
               "Payment Method",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -212,7 +212,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ),
       ),
 
-      ///  Place Order Button
+      //Place Order Button
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16),
         child: ElevatedButton(
