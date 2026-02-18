@@ -1,3 +1,5 @@
+import 'package:daisy_brew/features/auth/data/datasources/local/cart_local_datasource.dart';
+import 'package:daisy_brew/features/dashboard/domain/entities/cart_item.dart';
 import 'package:daisy_brew/features/dashboard/domain/entities/product_entity.dart';
 import 'package:flutter/material.dart';
 
@@ -322,7 +324,45 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         padding: const EdgeInsets.symmetric(vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
-      onPressed: () {},
+      onPressed: () {
+        if (quantity == 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select quantity')),
+          );
+          return;
+        }
+
+        if (selectedSize == null) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Please select size')));
+          return;
+        }
+
+        if (isHot == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select temperature')),
+          );
+          return;
+        }
+
+        CartLocalDataSource.addItem(
+          CartItem(
+            product: widget.product,
+            quantity: quantity,
+            size: selectedSize,
+            isHot: isHot,
+            sugar: sugarLevel,
+            milk: milk,
+          ),
+        );
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Added to cart')));
+
+        Navigator.pop(context);
+      },
       child: Text(text),
     );
   }

@@ -115,7 +115,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isUploading = true);
 
     final baseUrl = Platform.isAndroid
-        ? 'http://192.168.254.200:3000/api/v1' // real device
+        ? 'http://192.168.254.27:3000/api/v1' // real device
         : 'http://10.0.2.2:3000/api/v1'; // emulator
 
     final url = "$baseUrl/profile/upload";
@@ -136,7 +136,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (newURL != null) {
         final fullUrl =
-            "http://192.168.254.200:3000/public/profile_pictures/$newURL";
+            "http://192.168.254.27:3000/public/profile_pictures/$newURL";
 
         setState(() {
           _uploadedImageUrl = fullUrl;
