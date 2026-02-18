@@ -1,4 +1,5 @@
 import 'package:daisy_brew/features/auth/data/datasources/local/cart_local_datasource.dart';
+import 'package:daisy_brew/features/dashboard/presentation/pages/checkout_screen.dart';
 import 'package:flutter/material.dart';
 
 class CartScreen extends StatefulWidget {
@@ -29,6 +30,7 @@ class _CartScreenState extends State<CartScreen> {
               ),
             )
           : ListView.builder(
+              padding: const EdgeInsets.all(16),
               itemCount: cartItems.length,
               itemBuilder: (context, index) {
                 final item = cartItems[index];
@@ -56,6 +58,30 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                 );
               },
+            ),
+      bottomNavigationBar: cartItems.isEmpty
+          ? null
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.brown,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const CheckoutScreen()),
+                  );
+                },
+                child: const Text(
+                  "Checkout",
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
             ),
     );
   }
