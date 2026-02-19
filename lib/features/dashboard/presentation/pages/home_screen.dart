@@ -35,6 +35,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String? profileImageUrl;
 
+  final TextEditingController _searchController = TextEditingController();
+  String searchQuery = '';
+
   final List<String> categories = [
     'Coffee',
     'Matcha',
@@ -213,12 +216,12 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final dio = Dio();
       dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
-      final baseUrl = 'http://192.168.254.27:3000/api/v1';
+      final baseUrl = 'http://192.168.254.10:3000/api/v1';
       final response = await dio.get('$baseUrl/profile');
 
       if (response.data != null && response.data['profilePicture'] != null) {
         final imageUrl =
-            'http://192.168.254.27:3000/public/profile_pictures/${response.data['profilePicture']}';
+            'http://192.168.254.10:3000/public/profile_pictures/${response.data['profilePicture']}';
 
         setState(() {
           profileImageUrl = imageUrl;
@@ -261,6 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _searchController.dispose();
     _shakeDetector?.stopListening();
     _proximitySubscription?.cancel();
     super.dispose();
@@ -268,6 +272,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onCategoryTap(int index) {
     setState(() => selectedCategoryIndex = index);
+    searchQuery = '';
+    _searchController.clear();
   }
 
   void _onCartTap() {
@@ -320,8 +326,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentProducts =
+    final allProducts =
         categoryProducts[categories[selectedCategoryIndex]] ?? [];
+
+    final currentProducts = allProducts.where((product) {
+      return product.name.toLowerCase().contains(searchQuery.toLowerCase());
+    }).toList();
 
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.black : const Color(0xFFF6EBDD),
@@ -352,6 +362,12 @@ class _HomeScreenState extends State<HomeScreen> {
               onCartTap: _onCartTap,
               fullName: widget.fullName,
               profilePictureUrl: profileImageUrl, // pass the image URL
+              searchController: _searchController,
+              onSearchChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                });
+              },
             ),
             const SizedBox(height: 16),
             Padding(
@@ -375,33 +391,43 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: GridView.builder(
-                  itemCount: currentProducts.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.75,
-                  ),
-                  itemBuilder: (context, index) {
-                    final product = currentProducts[index];
+                child: currentProducts.isEmpty
+                    ? const Center(
+                        child: Text(
+                          "No drinks found",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      )
+                    : GridView.builder(
+                        itemCount: currentProducts.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 0.75,
+                            ),
+                        itemBuilder: (context, index) {
+                          final product = currentProducts[index];
 
-                    return ProductCardWidget(
-                      name: product.name,
-                      price: 'Rs. ${product.price}',
-                      imagePath: product.image,
-                      onAddTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                ProductDetailScreen(product: product),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
+                          return ProductCardWidget(
+                            name: product.name,
+                            price: 'Rs. ${product.price}',
+                            imagePath: product.image,
+                            onAddTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ProductDetailScreen(
+                                    product: product,
+                                    category: categories[selectedCategoryIndex],
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
               ),
             ),
           ],

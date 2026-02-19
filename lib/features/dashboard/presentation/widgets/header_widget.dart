@@ -4,12 +4,16 @@ class HeaderWidget extends StatelessWidget {
   final VoidCallback onCartTap;
   final String fullName;
   final String? profilePictureUrl;
+  final TextEditingController? searchController;
+  final ValueChanged<String>? onSearchChanged;
 
   const HeaderWidget({
     super.key,
     required this.onCartTap,
     required this.fullName,
     this.profilePictureUrl,
+    this.searchController,
+    this.onSearchChanged,
   });
 
   @override
@@ -54,11 +58,14 @@ class HeaderWidget extends StatelessWidget {
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
+            height: 40,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(30),
             ),
-            child: const TextField(
+            child: TextField(
+              controller: searchController,
+              onChanged: onSearchChanged,
               decoration: InputDecoration(
                 hintText: 'Search',
                 border: InputBorder.none,

@@ -5,8 +5,13 @@ import 'package:flutter/material.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
+  final String category;
 
-  const ProductDetailScreen({super.key, required this.product});
+  const ProductDetailScreen({
+    super.key,
+    required this.product,
+    required this.category,
+  });
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
@@ -20,10 +25,49 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String? milk;
   bool _imageVisible = false;
 
+  Color get headerColor {
+    switch (widget.category) {
+      case 'Matcha':
+        return Colors.green.shade200;
+      case 'Smoothies':
+        return Colors.orange.shade200;
+      case 'Bubble Tea':
+        return Colors.pink.shade200;
+      default:
+        return Colors.brown.shade300; // Coffee
+    }
+  }
+
+  Color get primaryColor {
+    switch (widget.category) {
+      case 'Matcha':
+        return Colors.green.shade300;
+      case 'Smoothies':
+        return Colors.orange.shade300;
+      case 'Bubble Tea':
+        return Colors.pink.shade300;
+      default:
+        return Colors.brown.shade400; // Coffee
+    }
+  }
+
+  Color get backgroundColor {
+    switch (widget.category) {
+      case 'Matcha':
+        return const Color(0xFFE8F5E9);
+      case 'Smoothies':
+        return const Color(0xFFFFF3E0);
+      case 'Bubble Tea':
+        return const Color(0xFFFCE4EC);
+      default:
+        return const Color(0xFFF6EBDD);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6EBDD),
+      backgroundColor: backgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -36,10 +80,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   children: [
                     ClipPath(
                       clipper: InvertedArcClipper(),
-                      child: Container(
-                        height: 200,
-                        color: const Color(0xFFB7A89B),
-                      ),
+                      child: Container(height: 200, color: headerColor),
                     ),
                     Positioned(
                       bottom: -5,
@@ -109,7 +150,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     Expanded(
                       child: _actionButton(
                         'Add to cart',
-                        Colors.brown,
+                        primaryColor,
                         Colors.white,
                       ),
                     ),
@@ -117,7 +158,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     Expanded(
                       child: _actionButton(
                         'Buy Now',
-                        Colors.brown,
+                        primaryColor,
                         Colors.white,
                       ),
                     ),
@@ -136,7 +177,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget _qtyButton(IconData icon, VoidCallback onTap) {
     return CircleAvatar(
       radius: 18,
-      backgroundColor: Colors.brown.shade300,
+      backgroundColor: primaryColor,
       child: IconButton(
         icon: Icon(icon, size: 18, color: Colors.white),
         onPressed: onTap,
@@ -188,7 +229,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       child: ChoiceChip(
         label: Text(label),
         selected: selected,
-        selectedColor: Colors.brown.shade300,
+        selectedColor: primaryColor,
         onSelected: (_) => setState(() => isHot = value),
       ),
     );
@@ -208,7 +249,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             margin: const EdgeInsets.symmetric(horizontal: 10),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: selected ? Colors.brown.shade300 : Colors.white,
+              color: selected ? primaryColor : Colors.white,
               borderRadius: BorderRadius.circular(12),
               boxShadow: selected
                   ? [
@@ -250,7 +291,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         return ChoiceChip(
           label: Text(item),
           selected: milk == item,
-          selectedColor: Colors.brown.shade300,
+          selectedColor: primaryColor,
           onSelected: (_) => setState(() => milk = item),
         );
       }).toList(),
@@ -263,7 +304,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       child: ChoiceChip(
         label: Text(text),
         selected: selected,
-        selectedColor: Colors.brown.shade300,
+        selectedColor: primaryColor,
         onSelected: (_) => onTap(),
       ),
     );
@@ -289,10 +330,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: selected ? Colors.brown.shade300 : Colors.white,
+              color: selected ? primaryColor : Colors.white,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: selected ? Colors.brown.shade300 : Colors.grey.shade400,
+                color: selected ? primaryColor : Colors.grey.shade400,
                 width: 1.5,
               ),
               boxShadow: selected
