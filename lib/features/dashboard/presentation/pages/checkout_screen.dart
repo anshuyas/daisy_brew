@@ -1,8 +1,19 @@
 import 'package:daisy_brew/features/auth/data/datasources/local/cart_local_datasource.dart';
+import 'package:daisy_brew/features/dashboard/domain/entities/cart_item.dart';
+import 'package:daisy_brew/features/dashboard/presentation/pages/home_screen.dart';
 import 'package:flutter/material.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({super.key});
+  final String token;
+  final String fullName;
+  final CartItem? singleItem;
+
+  const CheckoutScreen({
+    super.key,
+    required this.token,
+    required this.fullName,
+    this.singleItem,
+  });
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -21,9 +32,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  List<CartItem> get currentItems {
+    if (widget.singleItem != null) {
+      return [widget.singleItem!];
+    } else {
+      return CartLocalDataSource.items;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final cartItems = CartLocalDataSource.items;
+    final cartItems = currentItems;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6EBDD),
@@ -36,15 +55,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            //Order Summary Title
             const Text(
               "Order Summary",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 12),
-
-            // Cart Items
             ...cartItems.map((item) {
               return Card(
                 margin: const EdgeInsets.only(bottom: 10),
@@ -65,10 +80,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               );
             }),
-
             const SizedBox(height: 20),
-
-            // Total
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -86,18 +98,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 30),
-
-            //Delivery Address
-            //Order Type
             const Text(
               "Order Type",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 8),
-
             Row(
               children: [
                 Expanded(child: _orderTypeChip("Delivery")),
@@ -105,17 +111,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Expanded(child: _orderTypeChip("Pickup")),
               ],
             ),
-
             const SizedBox(height: 24),
-
-            //Time Option
             const Text(
               "Pickup Time",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 8),
-
             Column(
               children: [
                 RadioListTile(
@@ -123,26 +124,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   groupValue: timeOption,
                   activeColor: Colors.brown,
                   title: const Text("ASAP (Now - 15 mins)"),
-                  onChanged: (value) {
-                    setState(() {
-                      timeOption = value.toString();
-                    });
-                  },
+                  onChanged: (value) =>
+                      setState(() => timeOption = value.toString()),
                 ),
                 RadioListTile(
                   value: "Schedule",
                   groupValue: timeOption,
                   activeColor: Colors.brown,
                   title: const Text("Schedule Pickup"),
-                  onChanged: (value) {
-                    setState(() {
-                      timeOption = value.toString();
-                    });
-                  },
+                  onChanged: (value) =>
+                      setState(() => timeOption = value.toString()),
                 ),
               ],
             ),
-
             if (timeOption == "Schedule") ...[
               const SizedBox(height: 10),
               ElevatedButton(
@@ -156,16 +150,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     lastDate: DateTime.now().add(const Duration(days: 7)),
                     initialDate: DateTime.now(),
                   );
-
                   if (date == null) return;
-
                   final time = await showTimePicker(
                     context: context,
                     initialTime: TimeOfDay.now(),
                   );
-
                   if (time == null) return;
-
                   setState(() {
                     scheduledDateTime = DateTime(
                       date.year,
@@ -181,7 +171,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   style: TextStyle(color: Colors.white),
                 ),
               ),
-
               if (scheduledDateTime != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
@@ -191,28 +180,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ),
             ],
-
-            //Payment Method
             const Text(
               "Payment Method",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 10),
-
             Column(
               children: [
                 _paymentOption("Cash on Delivery"),
                 _paymentOption("eSewa"),
               ],
             ),
-
             const SizedBox(height: 100),
           ],
         ),
       ),
-
-      //Place Order Button
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16),
         child: ElevatedButton(
@@ -228,9 +210,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const SnackBar(content: Text("Order Placed Successfully!")),
             );
 
-            CartLocalDataSource.clear();
+            if (widget.singleItem == null) {
+              CartLocalDataSource.clear();
+            }
 
-            Navigator.pop(context);
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    HomeScreen(token: widget.token, fullName: widget.fullName),
+              ),
+              (route) => false,
+            );
           },
           child: const Text(
             "Place Order",
@@ -246,27 +237,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       value: method,
       groupValue: selectedPayment,
       activeColor: Colors.brown,
-      onChanged: (value) {
-        setState(() {
-          selectedPayment = value.toString();
-        });
-      },
+      onChanged: (value) => setState(() => selectedPayment = value.toString()),
       title: Text(method),
     );
   }
 
   Widget _orderTypeChip(String type) {
     final selected = orderType == type;
-
     return ChoiceChip(
       label: Text(type),
       selected: selected,
       selectedColor: Colors.brown.shade300,
-      onSelected: (_) {
-        setState(() {
-          orderType = type;
-        });
-      },
+      onSelected: (_) => setState(() => orderType = type),
     );
   }
 }

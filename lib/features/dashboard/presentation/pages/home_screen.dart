@@ -64,11 +64,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       Product(name: 'Latte', image: 'assets/images/latte.jpg', price: 200),
       Product(
-        name: 'Test',
-        image: 'assets/images/banana-smoothie.webp',
-        price: 200,
-      ),
-      Product(
         name: 'Iced Macchiato',
         image: 'assets/images/iced macchiato.jpg',
         price: 295,
@@ -279,7 +274,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onCartTap() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => CartScreen()),
+      MaterialPageRoute(
+        builder: (context) =>
+            CartScreen(token: widget.token, fullName: widget.fullName),
+      ),
     );
   }
 
@@ -421,6 +419,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   builder: (_) => ProductDetailScreen(
                                     product: product,
                                     category: categories[selectedCategoryIndex],
+                                    token: widget.token,
+                                    fullName: widget.fullName,
                                   ),
                                 ),
                               );

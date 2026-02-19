@@ -3,7 +3,10 @@ import 'package:daisy_brew/features/dashboard/presentation/pages/checkout_screen
 import 'package:flutter/material.dart';
 
 class CartScreen extends StatefulWidget {
-  const CartScreen({super.key});
+  final String token;
+  final String fullName;
+
+  const CartScreen({super.key, required this.token, required this.fullName});
 
   @override
   State<CartScreen> createState() => _CartScreenState();
@@ -74,7 +77,12 @@ class _CartScreenState extends State<CartScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const CheckoutScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => CheckoutScreen(
+                        token: widget.token,
+                        fullName: widget.fullName,
+                      ),
+                    ),
                   );
                 },
                 child: const Text(

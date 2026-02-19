@@ -1,16 +1,21 @@
 import 'package:daisy_brew/features/auth/data/datasources/local/cart_local_datasource.dart';
 import 'package:daisy_brew/features/dashboard/domain/entities/cart_item.dart';
 import 'package:daisy_brew/features/dashboard/domain/entities/product_entity.dart';
+import 'package:daisy_brew/features/dashboard/presentation/pages/checkout_screen.dart';
 import 'package:flutter/material.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
   final String category;
+  final String token;
+  final String fullName;
 
   const ProductDetailScreen({
     super.key,
     required this.product,
     required this.category,
+    required this.token,
+    required this.fullName,
   });
 
   @override
@@ -387,22 +392,35 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           return;
         }
 
-        CartLocalDataSource.addItem(
-          CartItem(
-            product: widget.product,
-            quantity: quantity,
-            size: selectedSize,
-            isHot: isHot,
-            sugar: sugarLevel,
-            milk: milk,
-          ),
+        final selectedItem = CartItem(
+          product: widget.product,
+          quantity: quantity,
+          size: selectedSize,
+          isHot: isHot,
+          sugar: sugarLevel,
+          milk: milk,
         );
 
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Added to cart')));
+        if (text == 'Add to cart') {
+          CartLocalDataSource.addItem(selectedItem);
 
-        Navigator.pop(context);
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Added to cart')));
+
+          Navigator.pop(context);
+        } else if (text == 'Buy Now') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CheckoutScreen(
+                token: widget.token,
+                fullName: widget.fullName,
+                singleItem: selectedItem,
+              ),
+            ),
+          );
+        }
       },
       child: Text(text),
     );
