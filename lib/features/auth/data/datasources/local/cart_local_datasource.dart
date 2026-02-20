@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:daisy_brew/features/dashboard/domain/entities/cart_item.dart';
+import 'package:daisy_brew/features/dashboard/domain/entities/cart_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CartLocalDataSource {

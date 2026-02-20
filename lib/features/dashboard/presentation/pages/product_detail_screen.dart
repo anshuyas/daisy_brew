@@ -1,6 +1,8 @@
 import 'package:daisy_brew/features/auth/data/datasources/local/cart_local_datasource.dart';
-import 'package:daisy_brew/features/dashboard/domain/entities/cart_item.dart';
+import 'package:daisy_brew/features/auth/data/datasources/local/order_local_datasource.dart';
+import 'package:daisy_brew/features/dashboard/domain/entities/cart_entity.dart';
 import 'package:daisy_brew/features/dashboard/domain/entities/product_entity.dart';
+import 'package:daisy_brew/features/dashboard/domain/entities/order_entity.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/checkout_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -23,8 +25,8 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  int quantity = 0;
-  int? selectedSize;
+  int quantity = 1; // start from 1
+  double? selectedSize;
   bool? isHot;
   int? sugarLevel;
   String? milk;
@@ -39,7 +41,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       case 'Bubble Tea':
         return Colors.pink.shade200;
       default:
-        return Colors.brown.shade300; // Coffee
+        return Colors.brown.shade300;
     }
   }
 
@@ -52,7 +54,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       case 'Bubble Tea':
         return Colors.pink.shade300;
       default:
-        return Colors.brown.shade400; // Coffee
+        return Colors.brown.shade400;
     }
   }
 
@@ -108,7 +110,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               const SizedBox(height: 12),
 
               // Quantity selector
@@ -130,7 +131,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   }),
                 ],
               ),
-
               const SizedBox(height: 24),
 
               _sectionTitle('Size'),
@@ -204,18 +204,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _sizeSelector() {
-    final sizes = [20.0, 26.0, 32.0];
-
+    final sizes = [20.0, 26.0, 32.0]; // use doubles
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(3, (index) {
+      children: sizes.map((size) {
+        final selected = selectedSize == size;
         return _optionBox(
           icon: Icons.local_cafe,
-          iconSize: sizes[index],
-          selected: selectedSize == index,
-          onTap: () => setState(() => selectedSize = index),
+          iconSize: size,
+          selected: selected,
+          onTap: () => setState(() => selectedSize = size),
         );
-      }),
+      }).toList(),
     );
   }
 
@@ -228,7 +228,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _tempChip(String label, bool value) {
     final bool selected = isHot == value;
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: ChoiceChip(
@@ -245,7 +244,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(3, (index) {
         final selected = sugarLevel == index;
-
         return GestureDetector(
           onTap: () => setState(() => sugarLevel = index),
           child: AnimatedContainer(
@@ -288,7 +286,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _milkSelector() {
     final milks = ['Oat milk', 'Soy milk', 'Almond milk'];
-
     return Wrap(
       spacing: 12,
       alignment: WrapAlignment.center,
@@ -300,18 +297,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           onSelected: (_) => setState(() => milk = item),
         );
       }).toList(),
-    );
-  }
-
-  Widget _chip(String text, bool selected, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: ChoiceChip(
-        label: Text(text),
-        selected: selected,
-        selectedColor: primaryColor,
-        onSelected: (_) => onTap(),
-      ),
     );
   }
 
@@ -370,21 +355,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         padding: const EdgeInsets.symmetric(vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
-      onPressed: () {
+      onPressed: () async {
         if (quantity == 0) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Please select quantity')),
           );
           return;
         }
-
         if (selectedSize == null) {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(const SnackBar(content: Text('Please select size')));
           return;
         }
-
         if (isHot == null) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Please select temperature')),
@@ -402,12 +385,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         );
 
         if (text == 'Add to cart') {
-          CartLocalDataSource.addItem(selectedItem);
-
+          await CartLocalDataSource.addItem(selectedItem);
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(const SnackBar(content: Text('Added to cart')));
-
           Navigator.pop(context);
         } else if (text == 'Buy Now') {
           Navigator.push(
@@ -431,19 +412,15 @@ class InvertedArcClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-
     path.lineTo(0, size.height - 60);
-
     path.quadraticBezierTo(
       size.width / 2,
       size.height - 180,
       size.width,
       size.height - 60,
     );
-
     path.lineTo(size.width, 0);
     path.close();
-
     return path;
   }
 

@@ -1,5 +1,7 @@
 import 'package:daisy_brew/features/auth/data/datasources/local/cart_local_datasource.dart';
-import 'package:daisy_brew/features/dashboard/domain/entities/cart_item.dart';
+import 'package:daisy_brew/features/auth/data/datasources/local/order_local_datasource.dart';
+import 'package:daisy_brew/features/dashboard/domain/entities/cart_entity.dart';
+import 'package:daisy_brew/features/dashboard/domain/entities/order_entity.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/home_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -25,19 +27,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String timeOption = "ASAP";
   DateTime? scheduledDateTime;
 
-  double get totalPrice {
-    return CartLocalDataSource.items.fold(
-      0,
-      (sum, item) => sum + (item.product.price * item.quantity),
-    );
-  }
-
   List<CartItem> get currentItems {
+    // If singleItem exists (Buy Now), only use that
     if (widget.singleItem != null) {
       return [widget.singleItem!];
     } else {
       return CartLocalDataSource.items;
     }
+  }
+
+  double get totalPrice {
+    return currentItems.fold(
+      0,
+      (sum, item) => sum + (item.product.price * item.quantity),
+    );
   }
 
   @override
@@ -205,14 +208,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               borderRadius: BorderRadius.circular(16),
             ),
           ),
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Order Placed Successfully!")),
+          onPressed: () async {
+            if (currentItems.isEmpty) return;
+
+            final orderNumber = DateTime.now().millisecondsSinceEpoch
+                .toString(); // unique
+            final total = currentItems.fold<double>(
+              0,
+              (sum, item) => sum + (item.product.price * item.quantity),
             );
 
+            final order = Order(
+              orderNumber: orderNumber,
+              dateTime: DateTime.now(),
+              items: currentItems,
+              status: "Confirmed",
+              total: total,
+            );
+
+            await OrderLocalDataSource.addOrder(order);
+
+            // Clear cart only if it's a normal cart checkout
             if (widget.singleItem == null) {
               CartLocalDataSource.clear();
             }
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Order Placed Successfully!")),
+            );
 
             Navigator.pushAndRemoveUntil(
               context,
