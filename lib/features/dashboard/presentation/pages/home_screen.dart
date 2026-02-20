@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:shake/shake.dart';
 import 'package:proximity_sensor/proximity_sensor.dart';
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/category_chip_widget.dart';
 import '../widgets/product_card_widget.dart';
 import '../widgets/header_widget.dart';
@@ -63,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
         price: 100,
       ),
       Product(name: 'Latte', image: 'assets/images/latte.jpg', price: 200),
+
       Product(
         name: 'Iced Macchiato',
         image: 'assets/images/iced macchiato.jpg',
@@ -208,24 +210,33 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _fetchProfilePicture() async {
-    try {
-      final dio = Dio();
-      dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
-      final baseUrl = 'http://192.168.254.10:3000/api/v1';
-      final response = await dio.get('$baseUrl/profile');
+    final prefs = await SharedPreferences.getInstance();
+    final savedUrl = prefs.getString('profile_picture_url');
 
-      if (response.data != null && response.data['profilePicture'] != null) {
-        final imageUrl =
-            'http://192.168.254.10:3000/public/profile_pictures/${response.data['profilePicture']}';
+    if (savedUrl != null) {
+      setState(() {
+        profileImageUrl = savedUrl;
+      });
+    } else {
+      try {
+        final dio = Dio();
+        dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
+        final baseUrl = 'http://192.168.254.10:3000/api/v1';
+        final response = await dio.get('$baseUrl/profile');
 
-        setState(() {
-          profileImageUrl = imageUrl;
-        });
+        if (response.data != null && response.data['profilePicture'] != null) {
+          final imageUrl =
+              'http://192.168.254.10:3000/public/profile_pictures/${response.data['profilePicture']}';
 
-        debugPrint("Profile image fetched: $imageUrl");
+          setState(() {
+            profileImageUrl = imageUrl;
+          });
+
+          debugPrint("Profile image fetched: $imageUrl");
+        }
+      } catch (e) {
+        debugPrint('Failed to fetch profile picture: $e');
       }
-    } catch (e) {
-      debugPrint('Failed to fetch profile picture: $e');
     }
   }
 
@@ -309,12 +320,15 @@ class _HomeScreenState extends State<HomeScreen> {
             token: widget.token,
             fullName: widget.fullName,
             initialProfilePicture: profileImageUrl,
-            onProfileUpdated: (newUrl) {
+            onProfileUpdated: (newUrl) async {
               debugPrint("New profile image URL received: $newUrl");
 
               setState(() {
                 profileImageUrl = newUrl; // update profile picture immediately
               });
+
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('profile_picture_url', newUrl);
             },
           ),
         ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String token;
@@ -32,7 +33,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _uploadedImageUrl = widget.initialProfilePicture;
+    _loadProfilePicture();
+  }
+
+  // Load saved profile image URL from device
+  Future<void> _loadProfilePicture() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _uploadedImageUrl = prefs.getString('profile_picture_url');
+    });
+  }
+
+  // Save profile image URL locally
+  Future<void> _saveProfilePictureLocally(String url) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('profile_picture_url', url);
   }
 
   Future<bool> _requestPermissions() async {
@@ -141,6 +156,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           _uploadedImageUrl = fullUrl;
         });
+
+        await _saveProfilePictureLocally(fullUrl); // save locally
 
         widget.onProfileUpdated(fullUrl);
         // Directly show success message here
