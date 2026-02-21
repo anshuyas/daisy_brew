@@ -4,16 +4,21 @@ import 'package:daisy_brew/features/dashboard/domain/entities/cart_entity.dart';
 import 'package:daisy_brew/features/dashboard/domain/entities/order_entity.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'shipping_address_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final String token;
   final String fullName;
+  final String email;
   final CartItem? singleItem;
 
   const CheckoutScreen({
     super.key,
     required this.token,
     required this.fullName,
+    required this.email,
     this.singleItem,
   });
 
@@ -27,8 +32,56 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String timeOption = "ASAP";
   DateTime? scheduledDateTime;
 
+  String? shippingAddress;
+  bool isLoadingAddress = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadShippingAddress();
+  }
+
+  Future<void> _loadShippingAddress() async {
+    setState(() => isLoadingAddress = true);
+
+    final prefs = await SharedPreferences.getInstance();
+    final localKey = '${widget.email}-shipping_address';
+
+    try {
+      final localAddress = prefs.getString(localKey);
+      if (localAddress != null && localAddress.isNotEmpty) {
+        setState(() {
+          shippingAddress = localAddress;
+          isLoadingAddress = false;
+        });
+        return;
+      }
+
+      final dio = Dio();
+      dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
+
+      final response = await dio.get(
+        "http://192.168.254.10:3000/api/v1/users/profile",
+      );
+
+      final user =
+          response.data['user'] ?? response.data['data'] ?? response.data;
+      final backendAddress = user['shippingAddress'];
+
+      if (backendAddress != null && backendAddress.isNotEmpty) {
+        setState(() {
+          shippingAddress = backendAddress;
+        });
+        await prefs.setString(localKey, backendAddress);
+      }
+    } catch (e) {
+      debugPrint("Checkout address load error: $e");
+    } finally {
+      setState(() => isLoadingAddress = false);
+    }
+  }
+
   List<CartItem> get currentItems {
-    // If singleItem exists (Buy Now), only use that
     if (widget.singleItem != null) {
       return [widget.singleItem!];
     } else {
@@ -58,6 +111,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            /// ORDER SUMMARY
             const Text(
               "Order Summary",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -83,7 +137,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               );
             }),
+
             const SizedBox(height: 20),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -101,7 +157,62 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ],
             ),
+
             const SizedBox(height: 30),
+
+            /// SHIPPING ADDRESS
+            const Text(
+              "Shipping Address",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+
+            isLoadingAddress
+                ? const Center(child: CircularProgressIndicator())
+                : Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.brown),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          shippingAddress ?? "No address added",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        TextButton(
+                          onPressed: () async {
+                            final updatedAddress = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ShippingAddressScreen(
+                                  token: widget.token,
+                                  currentEmail: widget.email,
+                                ),
+                              ),
+                            );
+
+                            if (updatedAddress != null &&
+                                updatedAddress.isNotEmpty) {
+                              setState(() {
+                                shippingAddress = updatedAddress;
+                              });
+                            } else {
+                              _loadShippingAddress();
+                            }
+                          },
+                          child: const Text("Edit Address"),
+                        ),
+                      ],
+                    ),
+                  ),
+
+            const SizedBox(height: 30),
+
+            /// ORDER TYPE
             const Text(
               "Order Type",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -114,7 +225,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Expanded(child: _orderTypeChip("Pickup")),
               ],
             ),
+
             const SizedBox(height: 24),
+
+            /// TIME OPTION
             const Text(
               "Pickup Time",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -140,49 +254,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ],
             ),
-            if (timeOption == "Schedule") ...[
-              const SizedBox(height: 10),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.brown.shade300,
-                ),
-                onPressed: () async {
-                  final date = await showDatePicker(
-                    context: context,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(const Duration(days: 7)),
-                    initialDate: DateTime.now(),
-                  );
-                  if (date == null) return;
-                  final time = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.now(),
-                  );
-                  if (time == null) return;
-                  setState(() {
-                    scheduledDateTime = DateTime(
-                      date.year,
-                      date.month,
-                      date.day,
-                      time.hour,
-                      time.minute,
-                    );
-                  });
-                },
-                child: const Text(
-                  "Select Date & Time",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              if (scheduledDateTime != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    "Scheduled for: ${scheduledDateTime.toString()}",
-                    style: const TextStyle(color: Colors.brown),
-                  ),
-                ),
-            ],
+
+            const SizedBox(height: 20),
+
+            /// PAYMENT METHOD
             const Text(
               "Payment Method",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -194,10 +269,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 _paymentOption("eSewa"),
               ],
             ),
+
             const SizedBox(height: 100),
           ],
         ),
       ),
+
+      /// PLACE ORDER BUTTON
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16),
         child: ElevatedButton(
@@ -211,8 +289,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           onPressed: () async {
             if (currentItems.isEmpty) return;
 
+            if (orderType == "Delivery" &&
+                (shippingAddress == null || shippingAddress!.isEmpty)) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Please add shipping address first"),
+                ),
+              );
+              return;
+            }
+
             final orderNumber = DateTime.now().millisecondsSinceEpoch
-                .toString(); // unique
+                .toString();
+
             final total = currentItems.fold<double>(
               0,
               (sum, item) => sum + (item.product.price * item.quantity),
@@ -228,7 +317,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
             await OrderLocalDataSource.addOrder(order);
 
-            // Clear cart only if it's a normal cart checkout
             if (widget.singleItem == null) {
               CartLocalDataSource.clear();
             }
@@ -240,8 +328,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    HomeScreen(token: widget.token, fullName: widget.fullName),
+                builder: (context) => HomeScreen(
+                  token: widget.token,
+                  fullName: widget.fullName,
+                  email: widget.email,
+                ),
               ),
               (route) => false,
             );

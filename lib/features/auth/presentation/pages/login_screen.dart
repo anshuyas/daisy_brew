@@ -35,6 +35,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               builder: (context) => HomeScreen(
                 token: next.user!.token!,
                 fullName: next.user!.fullName,
+                email: next.user!.email,
               ),
             ),
           );

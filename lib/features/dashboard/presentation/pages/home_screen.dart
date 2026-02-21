@@ -17,8 +17,14 @@ import 'profile_screen.dart';
 class HomeScreen extends StatefulWidget {
   final String token;
   final String fullName;
+  final String email;
 
-  const HomeScreen({super.key, required this.token, required this.fullName});
+  const HomeScreen({
+    super.key,
+    required this.token,
+    required this.fullName,
+    required this.email,
+  });
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -27,6 +33,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int selectedCategoryIndex = 0;
   int bottomNavIndex = 0;
+
+  String currentFullName = '';
 
   ShakeDetector? _shakeDetector;
   StreamSubscription<dynamic>? _proximitySubscription;
@@ -194,6 +202,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _fetchProfilePicture();
+    _loadProfilePictureFromPrefs();
+
+    currentFullName = widget.fullName;
 
     _shakeDetector = ShakeDetector.autoStart(
       onPhoneShake: (event) => _logoutUser(),
@@ -210,33 +221,33 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _fetchProfilePicture() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedUrl = prefs.getString('profile_picture_url');
+    try {
+      final dio = Dio();
+      dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
+      final baseUrl = 'http://192.168.254.10:3000/api/v1';
+      final response = await dio.get('$baseUrl/profile');
 
-    if (savedUrl != null) {
+      if (response.data != null && response.data['profilePicture'] != null) {
+        final imageUrl =
+            'http://192.168.254.10:3000/public/profile_pictures/${response.data['profilePicture']}';
+
+        if (mounted && (profileImageUrl == null || profileImageUrl!.isEmpty)) {
+          setState(() => profileImageUrl = imageUrl);
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to fetch profile picture: $e');
+    }
+  }
+
+  Future<void> _loadProfilePictureFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedUrl = prefs.getString('${widget.email}-profile_picture');
+
+    if (savedUrl != null && savedUrl.isNotEmpty) {
       setState(() {
         profileImageUrl = savedUrl;
       });
-    } else {
-      try {
-        final dio = Dio();
-        dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
-        final baseUrl = 'http://192.168.254.10:3000/api/v1';
-        final response = await dio.get('$baseUrl/profile');
-
-        if (response.data != null && response.data['profilePicture'] != null) {
-          final imageUrl =
-              'http://192.168.254.10:3000/public/profile_pictures/${response.data['profilePicture']}';
-
-          setState(() {
-            profileImageUrl = imageUrl;
-          });
-
-          debugPrint("Profile image fetched: $imageUrl");
-        }
-      } catch (e) {
-        debugPrint('Failed to fetch profile picture: $e');
-      }
     }
   }
 
@@ -286,8 +297,11 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            CartScreen(token: widget.token, fullName: widget.fullName),
+        builder: (context) => CartScreen(
+          token: widget.token,
+          fullName: widget.fullName,
+          email: widget.email,
+        ),
       ),
     );
   }
@@ -312,23 +326,19 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     } else if (index == 3) {
-      // Navigate to ProfileScreen with callback to update profile picture
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ProfileScreen(
             token: widget.token,
-            fullName: widget.fullName,
+            fullName: currentFullName,
+            email: widget.email,
             initialProfilePicture: profileImageUrl,
-            onProfileUpdated: (newUrl) async {
-              debugPrint("New profile image URL received: $newUrl");
-
+            onProfileUpdated: (newUrl, {String? updatedName}) async {
               setState(() {
-                profileImageUrl = newUrl; // update profile picture immediately
+                profileImageUrl = newUrl;
+                if (updatedName != null) currentFullName = updatedName;
               });
-
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.setString('profile_picture_url', newUrl);
             },
           ),
         ),
@@ -372,13 +382,11 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             HeaderWidget(
               onCartTap: _onCartTap,
-              fullName: widget.fullName,
+              fullName: currentFullName,
               profilePictureUrl: profileImageUrl, // pass the image URL
               searchController: _searchController,
               onSearchChanged: (value) {
-                setState(() {
-                  searchQuery = value;
-                });
+                setState(() => searchQuery = value);
               },
             ),
             const SizedBox(height: 16),
@@ -434,7 +442,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     product: product,
                                     category: categories[selectedCategoryIndex],
                                     token: widget.token,
-                                    fullName: widget.fullName,
+                                    fullName: currentFullName,
+                                    email: widget.email,
                                   ),
                                 ),
                               );

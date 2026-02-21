@@ -10,6 +10,7 @@ void main() {
           home: ProfileScreen(
             token: 'fake_token',
             fullName: 'Test User',
+            email: 'testuser@example.com',
             onProfileUpdated: (String newURL) {},
           ),
         ),
@@ -25,6 +26,7 @@ void main() {
           home: ProfileScreen(
             token: 'fake_token',
             fullName: 'Test User',
+            email: 'testuser@example.com',
             onProfileUpdated: (String newURL) {},
           ),
         ),
@@ -41,6 +43,7 @@ void main() {
             token: 'fake_token',
             fullName: 'Test User',
             onProfileUpdated: (String newURL) {},
+            email: 'testuser@example.com',
           ),
         ),
       );
@@ -55,6 +58,7 @@ void main() {
           home: ProfileScreen(
             token: 'fake_token',
             fullName: 'Test User',
+            email: 'testuser@example.com',
             onProfileUpdated: (String newURL) {},
           ),
         ),

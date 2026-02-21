@@ -37,11 +37,12 @@ class HeaderWidget extends StatelessWidget {
               CircleAvatar(
                 radius: 18,
                 backgroundColor: Colors.white,
-                backgroundImage: profilePictureUrl != null
+                backgroundImage:
+                    profilePictureUrl != null && profilePictureUrl!.isNotEmpty
                     ? NetworkImage(profilePictureUrl!)
                     : null,
-                child: profilePictureUrl == null
-                    ? const Icon(Icons.person, color: Colors.brown)
+                child: (profilePictureUrl == null || profilePictureUrl!.isEmpty)
+                    ? const Icon(Icons.person, color: Colors.brown, size: 24)
                     : null,
               ),
               GestureDetector(

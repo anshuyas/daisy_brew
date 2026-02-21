@@ -5,8 +5,14 @@ import 'package:flutter/material.dart';
 class CartScreen extends StatefulWidget {
   final String token;
   final String fullName;
+  final String email;
 
-  const CartScreen({super.key, required this.token, required this.fullName});
+  const CartScreen({
+    super.key,
+    required this.token,
+    required this.fullName,
+    required this.email,
+  });
 
   @override
   State<CartScreen> createState() => _CartScreenState();
@@ -81,6 +87,7 @@ class _CartScreenState extends State<CartScreen> {
                       builder: (_) => CheckoutScreen(
                         token: widget.token,
                         fullName: widget.fullName,
+                        email: widget.email,
                       ),
                     ),
                   );

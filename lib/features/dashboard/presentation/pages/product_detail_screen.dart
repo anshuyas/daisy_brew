@@ -11,6 +11,7 @@ class ProductDetailScreen extends StatefulWidget {
   final String category;
   final String token;
   final String fullName;
+  final String email;
 
   const ProductDetailScreen({
     super.key,
@@ -18,6 +19,7 @@ class ProductDetailScreen extends StatefulWidget {
     required this.category,
     required this.token,
     required this.fullName,
+    required this.email,
   });
 
   @override
@@ -397,6 +399,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               builder: (_) => CheckoutScreen(
                 token: widget.token,
                 fullName: widget.fullName,
+                email: widget.email,
                 singleItem: selectedItem,
               ),
             ),
