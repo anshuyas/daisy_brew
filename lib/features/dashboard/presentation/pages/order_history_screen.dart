@@ -63,9 +63,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
     if (orders.isEmpty) {
       return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text('Order History'),
-          backgroundColor: Colors.brown,
+          backgroundColor: const Color(0xFF8C7058),
         ),
         body: const Center(
           child: Text('No orders yet', style: TextStyle(fontSize: 18)),
@@ -74,9 +75,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     }
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Order History'),
-        backgroundColor: Colors.brown,
+        backgroundColor: const Color(0xFF8C7058),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

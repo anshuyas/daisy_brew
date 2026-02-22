@@ -76,7 +76,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -107,7 +107,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               // Title
               Text(
                 widget.product.name,
-                style: const TextStyle(
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),

@@ -79,4 +79,30 @@ class AuthRemoteDatasource {
   Future<void> logout() async {
     await _storage.delete(key: _tokenKey);
   }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    final body = {'email': email};
+
+    final response = await _apiClient.dio.post(
+      ApiEndpoints.forgotPassword,
+      data: body,
+    );
+
+    if (response.statusCode == 200) {
+      return;
+    } else {
+      throw Exception('Failed to send password reset email: ${response.data}');
+    }
+  }
+
+  Future<void> resetPassword(String token, String newPassword) async {
+    final response = await _apiClient.dio.post(
+      '/users/reset-password',
+      data: {'token': token, 'newPassword': newPassword},
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(response.data['message'] ?? 'Reset password failed');
+    }
+  }
 }

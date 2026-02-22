@@ -9,6 +9,8 @@ enum AuthStatus {
   registered,
   error,
   loggedIn,
+  passwordResetEmailSent,
+  passwordResetSuccess,
 }
 
 class AuthState extends Equatable {

@@ -20,11 +20,11 @@ final authRepositoryProvider = Provider<IAuthRepository>((ref) {
 
 class AuthRepository implements IAuthRepository {
   final AuthRemoteDatasource _authRemoteDatasource;
-  final NetworkInfo _networkInfo;
+  final INetworkInfo _networkInfo;
 
   AuthRepository({
     required AuthRemoteDatasource authRemoteDatasource,
-    required NetworkInfo networkInfo,
+    required INetworkInfo networkInfo,
   }) : _authRemoteDatasource = authRemoteDatasource,
        _networkInfo = networkInfo;
 
@@ -38,11 +38,6 @@ class AuthRepository implements IAuthRepository {
       try {
         final password = user.password ?? '';
         final model = AuthApiModel.fromEntity(user);
-
-        final body = model.toJson(
-          password: password,
-          confirmPassword: confirmPassword,
-        );
 
         await _authRemoteDatasource.registerUser(
           model: model,
@@ -113,8 +108,57 @@ class AuthRepository implements IAuthRepository {
       return Left(ApiFailure(message: e.toString()));
     }
   }
+
+  // Forgot Password method
+  @override
+  Future<Either<Failure, bool>> sendPasswordResetEmail(String email) async {
+    final connected = await _networkInfo.isConnected;
+    if (!connected)
+      return const Left(ApiFailure(message: 'No internet connection'));
+
+    try {
+      await _authRemoteDatasource.sendPasswordResetEmail(email);
+      return const Right(true);
+    } on DioException catch (e) {
+      return Left(
+        ApiFailure(
+          message: e.response?.data['message'] ?? 'Failed to send reset email',
+          statusCode: e.response?.statusCode,
+        ),
+      );
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
+    }
+  }
+
+  // Reset Password method
+  @override
+  Future<Either<Failure, bool>> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    final connected = await _networkInfo.isConnected;
+    if (connected) {
+      try {
+        await _authRemoteDatasource.resetPassword(token, newPassword);
+        return const Right(true);
+      } on DioException catch (e) {
+        return Left(
+          ApiFailure(
+            message: e.response?.data['message'] ?? 'Failed to reset password',
+            statusCode: e.response?.statusCode,
+          ),
+        );
+      } catch (e) {
+        return Left(ApiFailure(message: e.toString()));
+      }
+    } else {
+      return const Left(ApiFailure(message: 'No internet connection'));
+    }
+  }
 }
 
+// extension remains the same
 extension AuthApiModelExtension on AuthApiModel {
   Map<String, dynamic> toJson({String? password, String? confirmPassword}) {
     return {

@@ -1,3 +1,4 @@
+import 'package:daisy_brew/features/auth/presentation/pages/forgot_password_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -154,8 +155,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const SizedBox(height: 6),
                       GestureDetector(
                         onTap: () {
-                          // TODO: navigate to forgot password screen
-                          print("Forgot password clicked");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ForgotPasswordScreen(),
+                            ),
+                          );
                         },
                         child: const Text(
                           "Forgot password?",

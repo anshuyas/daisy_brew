@@ -6,7 +6,6 @@ import 'package:daisy_brew/features/dashboard/presentation/pages/notification_sc
 import 'package:daisy_brew/features/dashboard/presentation/pages/order_history_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shake/shake.dart';
-import 'package:proximity_sensor/proximity_sensor.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/category_chip_widget.dart';
@@ -37,10 +36,6 @@ class _HomeScreenState extends State<HomeScreen> {
   String currentFullName = '';
 
   ShakeDetector? _shakeDetector;
-  StreamSubscription<dynamic>? _proximitySubscription;
-
-  bool isDarkMode = false;
-  DateTime? _lastProximityTrigger;
 
   String? profileImageUrl;
 
@@ -206,18 +201,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     currentFullName = widget.fullName;
 
+    // Shake to logout
     _shakeDetector = ShakeDetector.autoStart(
       onPhoneShake: (event) => _logoutUser(),
       shakeThresholdGravity: 2.7,
     );
-
-    try {
-      _proximitySubscription = ProximitySensor.events.listen((event) {
-        if (event > 0) _toggleThemeWithCooldown();
-      });
-    } catch (e) {
-      debugPrint("Proximity sensor error: $e");
-    }
   }
 
   Future<void> _fetchProfilePicture() async {
@@ -251,26 +239,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _toggleThemeWithCooldown() {
-    final now = DateTime.now();
-    if (_lastProximityTrigger != null &&
-        now.difference(_lastProximityTrigger!).inSeconds < 2)
-      return;
-
-    _lastProximityTrigger = now;
-    if (!mounted) return;
-
-    setState(() => isDarkMode = !isDarkMode);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          isDarkMode ? "Dark Mode Activated" : "Light Mode Activated",
-        ),
-      ),
-    );
-  }
-
   void _logoutUser() {
     if (!mounted) return;
     Navigator.pushReplacementNamed(context, '/login');
@@ -283,7 +251,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _searchController.dispose();
     _shakeDetector?.stopListening();
-    _proximitySubscription?.cancel();
     super.dispose();
   }
 
@@ -356,11 +323,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: isDarkMode ? Colors.black : const Color(0xFFF6EBDD),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.brown,
-        unselectedItemColor: Colors.black54,
+        unselectedItemColor: Colors.grey,
         currentIndex: bottomNavIndex,
         onTap: _onBottomNavTap,
         items: const [
@@ -383,7 +349,7 @@ class _HomeScreenState extends State<HomeScreen> {
             HeaderWidget(
               onCartTap: _onCartTap,
               fullName: currentFullName,
-              profilePictureUrl: profileImageUrl, // pass the image URL
+              profilePictureUrl: profileImageUrl,
               searchController: _searchController,
               onSearchChanged: (value) {
                 setState(() => searchQuery = value);
@@ -407,7 +373,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),

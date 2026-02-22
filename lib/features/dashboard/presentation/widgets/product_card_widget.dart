@@ -16,9 +16,10 @@ class ProductCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.all(12),
@@ -29,7 +30,7 @@ class ProductCardWidget extends StatelessWidget {
             child: Center(child: Image.asset(imagePath, fit: BoxFit.contain)),
           ),
           const SizedBox(height: 8),
-          Text(name, style: Theme.of(context).textTheme.titleMedium),
+          Text(name, style: theme.textTheme.titleMedium),
           const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
