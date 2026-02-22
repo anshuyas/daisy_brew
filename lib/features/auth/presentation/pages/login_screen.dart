@@ -1,4 +1,5 @@
 import 'package:daisy_brew/features/auth/presentation/pages/forgot_password_screen.dart';
+import 'package:daisy_brew/features/dashboard/presentation/pages/admin_dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -30,17 +31,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen(authViewModelProvider, (_, next) {
       if (next.status == AuthStatus.authenticated) {
         if (next.user != null && next.user!.token != null) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomeScreen(
-                token: next.user!.token!,
-                fullName: next.user!.fullName,
-                email: next.user!.email,
+          // Navigate based on role
+          if (next.user!.role == 'admin') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AdminDashboardPage(),
               ),
-            ),
-          );
-
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomeScreen(
+                  token: next.user!.token!,
+                  fullName: next.user!.fullName,
+                  email: next.user!.email,
+                ),
+              ),
+            );
+          }
           showSnackbar(context, 'Login successful', color: Colors.green);
         } else {
           showSnackbar(

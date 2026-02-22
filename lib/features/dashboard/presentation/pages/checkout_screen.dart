@@ -1,8 +1,10 @@
+import 'package:daisy_brew/core/api/api_client.dart';
 import 'package:daisy_brew/features/auth/data/datasources/local/cart_local_datasource.dart';
 import 'package:daisy_brew/features/auth/data/datasources/local/order_local_datasource.dart';
 import 'package:daisy_brew/features/dashboard/domain/entities/cart_entity.dart';
 import 'package:daisy_brew/features/dashboard/domain/entities/order_entity.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/home_screen.dart';
+import 'package:daisy_brew/features/orders/data/datasources/order_remote_datasource.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -241,20 +243,66 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   groupValue: timeOption,
                   activeColor: Colors.brown,
                   title: const Text("ASAP (Now - 15 mins)"),
-                  onChanged: (value) =>
-                      setState(() => timeOption = value.toString()),
+                  onChanged: (value) {
+                    setState(() {
+                      timeOption = value.toString();
+                      scheduledDateTime = null;
+                    });
+                  },
                 ),
                 RadioListTile(
                   value: "Schedule",
                   groupValue: timeOption,
                   activeColor: Colors.brown,
                   title: const Text("Schedule Pickup"),
-                  onChanged: (value) =>
-                      setState(() => timeOption = value.toString()),
+                  onChanged: (value) async {
+                    setState(() {
+                      timeOption = value.toString();
+                    });
+                    // Show date & time picker
+                    final selectedDate = await showDatePicker(
+                      context: context,
+                      initialDate: scheduledDateTime ?? DateTime.now(),
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime.now().add(const Duration(days: 30)),
+                    );
+
+                    if (selectedDate != null) {
+                      final selectedTime = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.fromDateTime(
+                          scheduledDateTime ??
+                              DateTime.now().add(const Duration(minutes: 15)),
+                        ),
+                      );
+
+                      if (selectedTime != null) {
+                        setState(() {
+                          scheduledDateTime = DateTime(
+                            selectedDate.year,
+                            selectedDate.month,
+                            selectedDate.day,
+                            selectedTime.hour,
+                            selectedTime.minute,
+                          );
+                        });
+                      }
+                    }
+                  },
                 ),
+                if (timeOption == "Schedule" && scheduledDateTime != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      "Pickup scheduled for: ${scheduledDateTime!.toLocal()}",
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
               ],
             ),
-
             const SizedBox(height: 20),
 
             /// PAYMENT METHOD
@@ -307,35 +355,58 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               (sum, item) => sum + (item.product.price * item.quantity),
             );
 
-            final order = Order(
-              orderNumber: orderNumber,
-              dateTime: DateTime.now(),
-              items: currentItems,
-              status: "Confirmed",
-              total: total,
-            );
+            final productsForApi = currentItems
+                .map(
+                  (item) => {
+                    'product': item.product.id,
+                    'quantity': item.quantity,
+                    'price': item.product.price,
+                  },
+                )
+                .toList();
 
-            await OrderLocalDataSource.addOrder(order);
+            try {
+              final apiClient = ApiClient();
+              final orderApi = OrderRemoteDatasource(apiClient);
 
-            if (widget.singleItem == null) {
-              CartLocalDataSource.clear();
-            }
+              await orderApi.createOrder(
+                products: productsForApi,
+                totalPrice: total,
+              );
+              final order = Order(
+                orderNumber: orderNumber,
+                dateTime: DateTime.now(),
+                items: currentItems,
+                status: "Confirmed",
+                total: total,
+              );
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Order Placed Successfully!")),
-            );
+              await OrderLocalDataSource.addOrder(order);
 
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomeScreen(
-                  token: widget.token,
-                  fullName: widget.fullName,
-                  email: widget.email,
+              if (widget.singleItem == null) {
+                CartLocalDataSource.clear();
+              }
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Order Placed Successfully!")),
+              );
+
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HomeScreen(
+                    token: widget.token,
+                    fullName: widget.fullName,
+                    email: widget.email,
+                  ),
                 ),
-              ),
-              (route) => false,
-            );
+                (route) => false,
+              );
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Failed to place order: $e")),
+              );
+            }
           },
           child: const Text(
             "Place Order",

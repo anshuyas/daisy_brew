@@ -52,28 +52,37 @@ class _HomeScreenState extends State<HomeScreen> {
   final Map<String, List<Product>> categoryProducts = {
     'Coffee': [
       Product(
+        id: 'coffee1',
         name: 'Cappuccino',
         image: 'assets/images/cappucino.jpg',
         price: 250,
       ),
       Product(
+        id: 'coffee2',
         name: 'Americano',
         image: 'assets/images/americano.jpg',
         price: 150,
       ),
       Product(
+        id: 'coffee3',
         name: 'Espresso',
         image: 'assets/images/espresso.jpg',
         price: 100,
       ),
-      Product(name: 'Latte', image: 'assets/images/latte.jpg', price: 200),
-
       Product(
+        id: 'coffee4',
+        name: 'Latte',
+        image: 'assets/images/latte.jpg',
+        price: 200,
+      ),
+      Product(
+        id: 'coffee5',
         name: 'Iced Macchiato',
         image: 'assets/images/iced macchiato.jpg',
         price: 295,
       ),
       Product(
+        id: 'coffee6',
         name: 'Ristretto',
         image: 'assets/images/ristretto.webp',
         price: 125,
@@ -82,110 +91,133 @@ class _HomeScreenState extends State<HomeScreen> {
 
     'Matcha': [
       Product(
+        id: 'matcha1',
         name: 'Matcha Latte',
         image: 'assets/images/matcha-latte.avif',
         price: 350,
       ),
       Product(
+        id: 'matcha2',
         name: 'Strawberry Matcha',
         image: 'assets/images/strawberry-matcha.png',
         price: 380,
       ),
       Product(
+        id: 'matcha3',
         name: 'Coconut Matcha Cloud',
         image: 'assets/images/coconut-matcha-cloud.jpg',
         price: 390,
       ),
       Product(
+        id: 'matcha4',
         name: 'Vanilla Matcha',
         image: 'assets/images/vanilla-matcha.jpg',
         price: 390,
       ),
       Product(
+        id: 'matcha5',
         name: 'Matcha Hot Chocolate',
         image: 'assets/images/matcha-hot-choc.jpg',
         price: 370,
       ),
       Product(
+        id: 'matcha6',
         name: 'Honey Matcha',
         image: 'assets/images/honey-matcha.jpg',
         price: 380,
       ),
       Product(
+        id: 'matcha7',
         name: 'Mango Matcha Latte',
         image: 'assets/images/mango-matcha-latte.webp',
         price: 395,
       ),
     ],
+
     'Smoothies': [
       Product(
+        id: 'smoothie1',
         name: 'Blueberry Smoothie',
         image: 'assets/images/blueberry-smoothie.webp',
         price: 250,
       ),
       Product(
+        id: 'smoothie2',
         name: 'Strawberry Smoothie',
         image: 'assets/images/strawberry-smoothie.png',
         price: 250,
       ),
       Product(
+        id: 'smoothie3',
         name: 'Banana Smoothie',
         image: 'assets/images/banana-smoothie.webp',
         price: 200,
       ),
       Product(
+        id: 'smoothie4',
         name: 'Mango Smoothie',
         image: 'assets/images/mango-smoothie.png',
         price: 230,
       ),
       Product(
+        id: 'smoothie5',
         name: 'Watermelon Smoothie',
         image: 'assets/images/watermelon-smoothie.png',
         price: 240,
       ),
       Product(
+        id: 'smoothie6',
         name: 'Pineapple Smoothie',
         image: 'assets/images/pineapple-smoothie.png',
         price: 260,
       ),
       Product(
+        id: 'smoothie7',
         name: 'Cherry Smoothie',
         image: 'assets/images/cherry-smoothie.avif',
         price: 270,
       ),
     ],
+
     'Bubble Tea': [
       Product(
+        id: 'bubble1',
         name: 'Taro BubbleTea',
         image: 'assets/images/taro-bubble.jpg',
         price: 220,
       ),
       Product(
+        id: 'bubble2',
         name: 'Chocolate BubbleTea',
         image: 'assets/images/chocolate-bubble.png',
         price: 220,
       ),
       Product(
+        id: 'bubble3',
         name: 'Mango BubbleTea',
         image: 'assets/images/mango-bubble.png',
         price: 220,
       ),
       Product(
+        id: 'bubble4',
         name: 'Strawberry BubbleTea',
         image: 'assets/images/strawberry-bubble.png',
         price: 220,
       ),
       Product(
+        id: 'bubble5',
         name: 'HoneyDew BubbleTea',
         image: 'assets/images/honeydew-bubble.jpg',
         price: 220,
       ),
       Product(
+        id: 'bubble6',
         name: 'Coconut BubbleTea',
         image: 'assets/images/coconut-bubble.webp',
         price: 220,
       ),
       Product(
+        id: 'bubble7',
         name: 'Matcha BubbleTea',
         image: 'assets/images/matcha-bubble.jpg',
         price: 220,

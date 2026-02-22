@@ -5,11 +5,13 @@ class AuthApiModel {
   final String fullName;
   final String email;
   final String? token;
+  final String role;
 
   AuthApiModel({
     required this.id,
     required this.fullName,
     required this.email,
+    required this.role,
     this.token,
   });
 
@@ -18,6 +20,7 @@ class AuthApiModel {
       id: json['_id'] ?? '',
       fullName: json['fullName'] ?? '',
       email: json['email'] ?? '',
+      role: json['role'] ?? 'user',
       token: json['token'],
     );
   }
@@ -26,6 +29,7 @@ class AuthApiModel {
     return {
       'fullName': fullName,
       'email': email,
+      'role': role,
       if (password != null) 'password': password,
       if (confirmPassword != null) 'confirmPassword': confirmPassword,
     };
@@ -37,6 +41,7 @@ class AuthApiModel {
       fullName: fullName,
       email: email,
       token: token,
+      role: role,
     );
   }
 
@@ -46,6 +51,7 @@ class AuthApiModel {
       fullName: entity.fullName,
       email: entity.email,
       token: entity.token,
+      role: entity.role,
     );
   }
 }
