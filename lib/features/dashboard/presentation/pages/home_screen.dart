@@ -302,12 +302,12 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final dio = Dio();
       dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
-      final baseUrl = 'http://192.168.254.10:3000/api/v1';
+      final baseUrl = 'http://192.168.254.50:3000/api/v1';
       final response = await dio.get('$baseUrl/profile');
 
       if (response.data != null && response.data['profilePicture'] != null) {
         final imageUrl =
-            'http://192.168.254.10:3000/public/profile_pictures/${response.data['profilePicture']}';
+            'http://192.168.254.50:3000/public/profile_pictures/${response.data['profilePicture']}';
 
         if (mounted && (profileImageUrl == null || profileImageUrl!.isEmpty)) {
           setState(() => profileImageUrl = imageUrl);
@@ -323,7 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final dio = Dio();
       dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
       final response = await dio.get(
-        'http://192.168.254.10:3000/api/v1/products',
+        'http://192.168.254.50:3000/api/v1/products',
       );
 
       if (response.data != null) {
@@ -336,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
           String imageUrl = p.image.trim();
           if (!imageUrl.startsWith('http')) {
             imageUrl =
-                'http://192.168.254.10:3000/public/product_images/${imageUrl}';
+                'http://192.168.254.50:3000/public/product_images/${imageUrl}';
           }
 
           return Product(

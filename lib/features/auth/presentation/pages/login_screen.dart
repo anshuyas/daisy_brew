@@ -1,4 +1,5 @@
 import 'package:daisy_brew/features/auth/presentation/pages/forgot_password_screen.dart';
+import 'package:daisy_brew/features/auth/presentation/providers/auth_provider.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/admin_dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,6 +32,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen(authViewModelProvider, (_, next) {
       if (next.status == AuthStatus.authenticated) {
         if (next.user != null && next.user!.token != null) {
+          ref
+              .read(authStateProvider.notifier)
+              .setAuth(token: next.user!.token!, email: next.user!.email!);
+
           // Navigate based on role
           if (next.user!.role == 'admin') {
             Navigator.pushReplacement(

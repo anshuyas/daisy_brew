@@ -1,4 +1,5 @@
 import 'package:daisy_brew/features/dashboard/presentation/pages/admin_menu_screen.dart';
+import 'package:daisy_brew/features/user_management/presentation/pages/user_management_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -189,7 +190,12 @@ class AdminDashboardPage extends ConsumerWidget {
                           title: "Users",
                           icon: Icons.people,
                           onTap: () {
-                            // TODO: Navigate to Users page
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const UserManagementPage(),
+                              ),
+                            );
                           },
                         ),
                       ],

@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
     <application
+        android:usesCleartextTraffic="true"
         android:label="daisy_brew"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">

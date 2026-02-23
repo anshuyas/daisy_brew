@@ -88,7 +88,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     final updatedPhone = phoneController.text.trim();
 
                     final baseUrl = Platform.isAndroid
-                        ? 'http://192.168.254.10:3000'
+                        ? 'http://192.168.254.50:3000'
                         : 'http://10.0.2.2:3000';
 
                     try {

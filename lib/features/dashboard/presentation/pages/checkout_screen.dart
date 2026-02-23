@@ -63,7 +63,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
 
       final response = await dio.get(
-        "http://192.168.254.10:3000/api/v1/users/profile",
+        "http://192.168.254.50:3000/api/v1/users/profile",
       );
 
       final user =

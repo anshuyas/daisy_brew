@@ -43,7 +43,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     try {
       final dio = Dio();
       final response = await dio.put(
-        "http://192.168.254.10:3000/api/v1/users/change-password",
+        "http://192.168.254.50:3000/api/v1/users/change-password",
         data: {"currentPassword": current, "newPassword": newPass},
         options: Options(
           headers: {

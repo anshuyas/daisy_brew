@@ -29,7 +29,7 @@ class Product {
     final rawImage = json['image'] ?? '';
     final fullImage = rawImage.startsWith('http')
         ? rawImage
-        : 'http://192.168.254.10:3000/public/product_images/$rawImage';
+        : 'http://192.168.254.50:3000/public/product_images/$rawImage';
 
     return Product(
       id: json['_id'] ?? json['id'],

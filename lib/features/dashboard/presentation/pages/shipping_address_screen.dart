@@ -44,7 +44,7 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
       dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
 
       final response = await dio.get(
-        "http://192.168.254.10:3000/api/v1/users/profile",
+        "http://192.168.254.50:3000/api/v1/users/profile",
       );
 
       // Backend response parsing
@@ -84,7 +84,7 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
       dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
 
       final response = await dio.put(
-        "http://192.168.254.10:3000/api/v1/users/shipping-address",
+        "http://192.168.254.50:3000/api/v1/users/shipping-address",
         data: {"shippingAddress": address},
       );
 

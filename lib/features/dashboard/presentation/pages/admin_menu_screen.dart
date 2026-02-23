@@ -78,7 +78,7 @@ class AdminMenuPage extends ConsumerWidget {
       return Image.asset(img, width: 50, height: 50, fit: BoxFit.cover);
     } else {
       return Image.network(
-        'http://192.168.254.10:3000/public/product_images/$img',
+        'http://192.168.254.50:3000/public/product_images/$img',
         width: 50,
         height: 50,
         fit: BoxFit.cover,
@@ -234,7 +234,7 @@ class AdminMenuPage extends ConsumerWidget {
       return Image.asset(img, height: 100, fit: BoxFit.cover);
     } else {
       return Image.network(
-        'http://192.168.254.10:3000/public/product_images/$img',
+        'http://192.168.254.50:3000/public/product_images/$img',
         height: 100,
         fit: BoxFit.cover,
       );
