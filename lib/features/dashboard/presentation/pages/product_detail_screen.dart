@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:daisy_brew/features/auth/data/datasources/local/cart_local_datasource.dart';
 import 'package:daisy_brew/features/auth/data/datasources/local/order_local_datasource.dart';
 import 'package:daisy_brew/features/dashboard/domain/entities/cart_entity.dart';
@@ -27,12 +28,42 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  int quantity = 1; // start from 1
+  int quantity = 0; // start from 1
   double? selectedSize;
   bool? isHot;
   int? sugarLevel;
   String? milk;
   bool _imageVisible = false;
+
+  String get productImageUrl {
+    final img = widget.product.image;
+    if (img.isEmpty) {
+      return 'assets/images/default.png';
+    } else if (img.startsWith('http')) {
+      return img; // already full URL
+    } else if (img.startsWith('assets/')) {
+      return img; // local hardcoded asset
+    } else {
+      return 'http://192.168.254.10:3000/public/product_images/$img'; // backend filename
+    }
+  }
+
+  Widget _buildProductImage() {
+    final url = productImageUrl;
+    if (url.startsWith('assets/')) {
+      return Image.asset(url, height: 150, fit: BoxFit.cover);
+    } else {
+      return CachedNetworkImage(
+        imageUrl: url,
+        height: 150,
+        fit: BoxFit.cover,
+        placeholder: (context, _) =>
+            const Center(child: CircularProgressIndicator()),
+        errorWidget: (context, _, __) =>
+            Image.asset('assets/images/default.png', height: 150),
+      );
+    }
+  }
 
   Color get headerColor {
     switch (widget.category) {
@@ -95,9 +126,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       bottom: -5,
                       left: 0,
                       right: 0,
-                      child: Center(
-                        child: Image.asset(widget.product.image, height: 150),
-                      ),
+                      child: Center(child: _buildProductImage()),
                     ),
                   ],
                 ),

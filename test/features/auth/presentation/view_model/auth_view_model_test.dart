@@ -61,6 +61,7 @@ void main() {
     fullName: 'Test User',
     email: 'test@gmail.com',
     token: 'token_123',
+    role: 'user',
   );
 
   group('AuthViewModel', () {

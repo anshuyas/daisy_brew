@@ -1,3 +1,4 @@
+import 'package:daisy_brew/features/dashboard/presentation/pages/admin_menu_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -164,16 +165,33 @@ class AdminDashboardPage extends ConsumerWidget {
                     Wrap(
                       spacing: 12,
                       runSpacing: 12,
-                      children: const [
+                      children: [
                         _AdminQuickLinkCard(
                           title: "Menu",
                           icon: Icons.menu_book,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AdminMenuPage(),
+                              ),
+                            );
+                          },
                         ),
                         _AdminQuickLinkCard(
                           title: "Orders",
                           icon: Icons.receipt_long,
+                          onTap: () {
+                            // TODO: Navigate to Orders page
+                          },
                         ),
-                        _AdminQuickLinkCard(title: "Users", icon: Icons.people),
+                        _AdminQuickLinkCard(
+                          title: "Users",
+                          icon: Icons.people,
+                          onTap: () {
+                            // TODO: Navigate to Users page
+                          },
+                        ),
                       ],
                     ),
                   ],
@@ -233,15 +251,18 @@ class _AdminInfoCard extends StatelessWidget {
 class _AdminQuickLinkCard extends StatelessWidget {
   final String title;
   final IconData icon;
+  final VoidCallback onTap;
 
-  const _AdminQuickLinkCard({required this.title, required this.icon});
+  const _AdminQuickLinkCard({
+    required this.title,
+    required this.icon,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // TODO: Navigate to respective admin page
-      },
+      onTap: onTap,
       child: Container(
         width: 100,
         height: 100,

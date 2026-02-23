@@ -12,6 +12,7 @@ import '../widgets/category_chip_widget.dart';
 import '../widgets/product_card_widget.dart';
 import '../widgets/header_widget.dart';
 import 'profile_screen.dart';
+import '../providers/product_usecase_providers.dart';
 
 class HomeScreen extends StatefulWidget {
   final String token;
@@ -42,6 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   String searchQuery = '';
 
+  List<Product> apiProducts = [];
+
   final List<String> categories = [
     'Coffee',
     'Matcha',
@@ -56,36 +59,48 @@ class _HomeScreenState extends State<HomeScreen> {
         name: 'Cappuccino',
         image: 'assets/images/cappucino.jpg',
         price: 250,
+        isAvailable: true,
+        category: 'Coffee',
       ),
       Product(
         id: 'coffee2',
         name: 'Americano',
         image: 'assets/images/americano.jpg',
         price: 150,
+        isAvailable: true,
+        category: 'Coffee',
       ),
       Product(
         id: 'coffee3',
         name: 'Espresso',
         image: 'assets/images/espresso.jpg',
         price: 100,
+        isAvailable: true,
+        category: 'Coffee',
       ),
       Product(
         id: 'coffee4',
         name: 'Latte',
         image: 'assets/images/latte.jpg',
         price: 200,
+        isAvailable: true,
+        category: 'Coffee',
       ),
       Product(
         id: 'coffee5',
         name: 'Iced Macchiato',
         image: 'assets/images/iced macchiato.jpg',
         price: 295,
+        isAvailable: true,
+        category: 'Coffee',
       ),
       Product(
         id: 'coffee6',
         name: 'Ristretto',
         image: 'assets/images/ristretto.webp',
         price: 125,
+        isAvailable: true,
+        category: 'Coffee',
       ),
     ],
 
@@ -95,42 +110,56 @@ class _HomeScreenState extends State<HomeScreen> {
         name: 'Matcha Latte',
         image: 'assets/images/matcha-latte.avif',
         price: 350,
+        isAvailable: true,
+        category: 'Matcha',
       ),
       Product(
         id: 'matcha2',
         name: 'Strawberry Matcha',
         image: 'assets/images/strawberry-matcha.png',
         price: 380,
+        isAvailable: true,
+        category: 'Matcha',
       ),
       Product(
         id: 'matcha3',
         name: 'Coconut Matcha Cloud',
         image: 'assets/images/coconut-matcha-cloud.jpg',
         price: 390,
+        isAvailable: true,
+        category: 'Matcha',
       ),
       Product(
         id: 'matcha4',
         name: 'Vanilla Matcha',
         image: 'assets/images/vanilla-matcha.jpg',
         price: 390,
+        isAvailable: true,
+        category: 'Matcha',
       ),
       Product(
         id: 'matcha5',
         name: 'Matcha Hot Chocolate',
         image: 'assets/images/matcha-hot-choc.jpg',
         price: 370,
+        isAvailable: true,
+        category: 'Matcha',
       ),
       Product(
         id: 'matcha6',
         name: 'Honey Matcha',
         image: 'assets/images/honey-matcha.jpg',
         price: 380,
+        isAvailable: true,
+        category: 'Matcha',
       ),
       Product(
         id: 'matcha7',
         name: 'Mango Matcha Latte',
         image: 'assets/images/mango-matcha-latte.webp',
         price: 395,
+        isAvailable: true,
+        category: 'Matcha',
       ),
     ],
 
@@ -140,42 +169,56 @@ class _HomeScreenState extends State<HomeScreen> {
         name: 'Blueberry Smoothie',
         image: 'assets/images/blueberry-smoothie.webp',
         price: 250,
+        isAvailable: true,
+        category: 'Smoothies',
       ),
       Product(
         id: 'smoothie2',
         name: 'Strawberry Smoothie',
         image: 'assets/images/strawberry-smoothie.png',
         price: 250,
+        isAvailable: true,
+        category: 'Smoothies',
       ),
       Product(
         id: 'smoothie3',
         name: 'Banana Smoothie',
         image: 'assets/images/banana-smoothie.webp',
         price: 200,
+        isAvailable: true,
+        category: 'Smoothies',
       ),
       Product(
         id: 'smoothie4',
         name: 'Mango Smoothie',
         image: 'assets/images/mango-smoothie.png',
         price: 230,
+        isAvailable: true,
+        category: 'Smoothies',
       ),
       Product(
         id: 'smoothie5',
         name: 'Watermelon Smoothie',
         image: 'assets/images/watermelon-smoothie.png',
         price: 240,
+        isAvailable: true,
+        category: 'Smoothies',
       ),
       Product(
         id: 'smoothie6',
         name: 'Pineapple Smoothie',
         image: 'assets/images/pineapple-smoothie.png',
         price: 260,
+        isAvailable: true,
+        category: 'Smoothies',
       ),
       Product(
         id: 'smoothie7',
         name: 'Cherry Smoothie',
         image: 'assets/images/cherry-smoothie.avif',
         price: 270,
+        isAvailable: true,
+        category: 'Smoothies',
       ),
     ],
 
@@ -185,42 +228,56 @@ class _HomeScreenState extends State<HomeScreen> {
         name: 'Taro BubbleTea',
         image: 'assets/images/taro-bubble.jpg',
         price: 220,
+        isAvailable: true,
+        category: 'Bubble Tea',
       ),
       Product(
         id: 'bubble2',
         name: 'Chocolate BubbleTea',
         image: 'assets/images/chocolate-bubble.png',
         price: 220,
+        isAvailable: true,
+        category: 'Bubble Tea',
       ),
       Product(
         id: 'bubble3',
         name: 'Mango BubbleTea',
         image: 'assets/images/mango-bubble.png',
         price: 220,
+        isAvailable: true,
+        category: 'Bubble Tea',
       ),
       Product(
         id: 'bubble4',
         name: 'Strawberry BubbleTea',
         image: 'assets/images/strawberry-bubble.png',
         price: 220,
+        isAvailable: true,
+        category: 'Bubble Tea',
       ),
       Product(
         id: 'bubble5',
         name: 'HoneyDew BubbleTea',
         image: 'assets/images/honeydew-bubble.jpg',
         price: 220,
+        isAvailable: true,
+        category: 'Bubble Tea',
       ),
       Product(
         id: 'bubble6',
         name: 'Coconut BubbleTea',
         image: 'assets/images/coconut-bubble.webp',
         price: 220,
+        isAvailable: true,
+        category: 'Bubble Tea',
       ),
       Product(
         id: 'bubble7',
         name: 'Matcha BubbleTea',
         image: 'assets/images/matcha-bubble.jpg',
         price: 220,
+        isAvailable: true,
+        category: 'Bubble Tea',
       ),
     ],
   };
@@ -230,6 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _fetchProfilePicture();
     _loadProfilePictureFromPrefs();
+    _fetchApiProducts();
 
     currentFullName = widget.fullName;
 
@@ -257,6 +315,48 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       debugPrint('Failed to fetch profile picture: $e');
+    }
+  }
+
+  Future<void> _fetchApiProducts() async {
+    try {
+      final dio = Dio();
+      dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
+      final response = await dio.get(
+        'http://192.168.254.10:3000/api/v1/products',
+      );
+
+      if (response.data != null) {
+        final List<Product> fetchedProducts = (response.data as List).map((
+          json,
+        ) {
+          final p = Product.fromJson(json);
+
+          // Prepend full URL to image if it's just a filename
+          String imageUrl = p.image.trim();
+          if (!imageUrl.startsWith('http')) {
+            imageUrl =
+                'http://192.168.254.10:3000/public/product_images/${imageUrl}';
+          }
+
+          return Product(
+            id: p.id,
+            name: p.name,
+            image: imageUrl,
+            price: p.price,
+            isAvailable: p.isAvailable,
+            category: p.category.trim(),
+          );
+        }).toList();
+
+        if (!mounted) return;
+
+        setState(() {
+          apiProducts = fetchedProducts;
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to fetch API products: $e');
     }
   }
 
@@ -347,11 +447,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final allProducts =
-        categoryProducts[categories[selectedCategoryIndex]] ?? [];
+    // Hardcoded products for current category
+    final hardcoded = categoryProducts[categories[selectedCategoryIndex]] ?? [];
 
-    final currentProducts = allProducts.where((product) {
-      return product.name.toLowerCase().contains(searchQuery.toLowerCase());
+    // API products for current category
+    final fromApi = apiProducts
+        .where(
+          (p) =>
+              p.category.trim().toLowerCase() ==
+              categories[selectedCategoryIndex].toLowerCase(),
+        )
+        .toList();
+
+    // Combine both
+    final allProducts = [...hardcoded, ...fromApi];
+
+    // Apply search filter
+    final currentProducts = allProducts.where((p) {
+      return p.name.toLowerCase().contains(searchQuery.toLowerCase());
     }).toList();
 
     return Scaffold(

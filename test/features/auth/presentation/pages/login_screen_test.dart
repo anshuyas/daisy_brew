@@ -34,6 +34,7 @@ void main() {
         fullName: 'fallback',
         email: 'fallback@email.com',
         password: 'fallback',
+        role: 'user',
       ),
     );
     registerFallbackValue(

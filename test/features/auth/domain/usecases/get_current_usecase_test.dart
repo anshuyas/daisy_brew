@@ -21,6 +21,7 @@ void main() {
     authId: '1',
     fullName: 'Test User',
     email: 'test@example.com',
+    role: 'user',
   );
 
   group('GetCurrentUserUsecase', () {
@@ -99,6 +100,7 @@ void main() {
         authId: '1',
         fullName: 'Test User',
         email: 'test@example.com',
+        role: 'user',
         profilePicture: 'https://example.com/pic.jpg',
       );
       when(

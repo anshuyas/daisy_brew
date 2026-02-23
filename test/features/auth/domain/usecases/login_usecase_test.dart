@@ -20,7 +20,12 @@ void main() {
   const tEmail = 'test@example.com';
   const tPassword = 'password123';
 
-  const tUser = AuthEntity(authId: '1', fullName: 'Test User', email: tEmail);
+  const tUser = AuthEntity(
+    authId: '1',
+    fullName: 'Test User',
+    email: tEmail,
+    role: 'user',
+  );
 
   group('LoginUsecase', () {
     test('should return AuthEntity when login is successful', () async {
