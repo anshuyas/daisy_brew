@@ -5,6 +5,7 @@ import 'package:daisy_brew/features/dashboard/domain/entities/cart_entity.dart';
 import 'package:daisy_brew/features/dashboard/domain/entities/order_entity.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/home_screen.dart';
 import 'package:daisy_brew/features/orders/data/datasources/order_remote_datasource.dart';
+import 'package:daisy_brew/features/orders/domain/entities/order_status.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -347,9 +348,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               return;
             }
 
-            final orderNumber = DateTime.now().millisecondsSinceEpoch
-                .toString();
-
             final total = currentItems.fold<double>(
               0,
               (sum, item) => sum + (item.product.price * item.quantity),
@@ -370,16 +368,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               final apiClient = ApiClient();
               final orderApi = OrderRemoteDatasource(apiClient);
 
-              await orderApi.createOrder(
+              final backendOrder = await orderApi.createOrder(
                 products: productsForApi,
                 totalPrice: total,
               );
+
               final order = Order(
-                orderNumber: orderNumber,
-                dateTime: DateTime.now(),
+                orderNumber: backendOrder.id,
+                dateTime: backendOrder.createdAt,
                 items: currentItems,
-                status: "Confirmed",
-                total: total,
+                status: backendOrder.status.value,
+                total: backendOrder.totalPrice,
               );
 
               await OrderLocalDataSource.addOrder(order);

@@ -25,15 +25,18 @@ class OrderModel extends AdminOrder {
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     return OrderModel(
-      id: json['_id'],
-      userId: json['user']['_id'],
-      customerName: json['user']['fullName'] ?? '',
-      customerEmail: json['user']['email'] ?? '',
+      id: json['_id'] ?? '',
+      userId: json['user'] is Map ? json['user']['_id'] : json['user'],
+
+      customerName: json['user'] is Map ? json['user']['fullName'] ?? '' : '',
+
+      customerEmail: json['user'] is Map ? json['user']['email'] ?? '' : '',
+
       products: (json['products'] as List)
           .map(
             (p) => OrderProduct(
-              productId: p['_id'],
-              name: p['name'] ?? '',
+              productId: p['_id'] ?? '',
+              name: p['name'] ?? p['product'] ?? '',
               quantity: p['quantity'] ?? 0,
               price: (p['price'] as num?)?.toDouble() ?? 0,
             ),

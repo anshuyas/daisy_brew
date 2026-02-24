@@ -39,12 +39,10 @@ class NotificationScreen extends StatelessWidget {
                       "${order.items.length} item${order.items.length == 1 ? '' : 's'} • Total: Rs. ${order.total}",
                     ),
                     trailing: Text(
-                      order.status,
+                      order.status.toUpperCase(),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: order.status == "Confirmed"
-                            ? Colors.green
-                            : Colors.orange,
+                        color: _getStatusColor(order.status),
                       ),
                     ),
                   ),
@@ -52,5 +50,37 @@ class NotificationScreen extends StatelessWidget {
               },
             ),
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case "pending":
+        return Colors.orange;
+      case "preparing":
+        return Colors.blue;
+      case "ready":
+        return Colors.purple;
+      case "delivered":
+        return Colors.green;
+      case "canceled":
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _getNotificationMessage(Order order) {
+    switch (order.status) {
+      case "preparing":
+        return "Your order is being prepared";
+      case "ready":
+        return "Your order is ready for pickup";
+      case "delivered":
+        return "Your order has been delivered";
+      case "canceled":
+        return "Your order was canceled";
+      default:
+        return "Order placed successfully";
+    }
   }
 }

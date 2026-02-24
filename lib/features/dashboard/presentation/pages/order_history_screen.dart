@@ -1,5 +1,8 @@
+import 'package:daisy_brew/core/api/api_client.dart';
 import 'package:daisy_brew/features/auth/data/datasources/local/order_local_datasource.dart';
 import 'package:daisy_brew/features/dashboard/domain/entities/order_entity.dart';
+import 'package:daisy_brew/features/orders/data/datasources/order_remote_datasource.dart';
+import 'package:daisy_brew/features/orders/domain/entities/order_status.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -21,7 +24,28 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   }
 
   Future<void> _loadOrders() async {
+    final apiClient = ApiClient();
+    final orderApi = OrderRemoteDatasource(apiClient);
+
+    final backendOrders = await orderApi.getMyOrders();
+
     await OrderLocalDataSource.loadOrders();
+
+    for (var backendOrder in backendOrders) {
+      final orderId = backendOrder.id;
+      final newStatus = backendOrder.status.value;
+
+      final index = OrderLocalDataSource.orders.indexWhere(
+        (o) => o.orderNumber == orderId,
+      );
+
+      if (index != -1) {
+        if (OrderLocalDataSource.orders[index].status != newStatus) {
+          await OrderLocalDataSource.updateOrderStatus(orderId, newStatus);
+        }
+      }
+    }
+
     setState(() {
       orders = OrderLocalDataSource.orders;
     });
