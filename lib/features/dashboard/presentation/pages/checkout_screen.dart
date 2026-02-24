@@ -8,6 +8,7 @@ import 'package:daisy_brew/features/orders/data/datasources/order_remote_datasou
 import 'package:daisy_brew/features/orders/domain/entities/order_status.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'shipping_address_screen.dart';
 
@@ -387,20 +388,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 CartLocalDataSource.clear();
               }
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Order Placed Successfully!")),
-              );
-
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => HomeScreen(
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (_) {
+                  return _OrderSuccessDialog(
                     token: widget.token,
                     fullName: widget.fullName,
                     email: widget.email,
-                  ),
-                ),
-                (route) => false,
+                  );
+                },
               );
             } catch (e) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -434,6 +431,106 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       selected: selected,
       selectedColor: Colors.brown.shade300,
       onSelected: (_) => setState(() => orderType = type),
+    );
+  }
+}
+
+class _OrderSuccessDialog extends StatefulWidget {
+  final String token;
+  final String fullName;
+  final String email;
+
+  const _OrderSuccessDialog({
+    Key? key,
+    required this.token,
+    required this.fullName,
+    required this.email,
+  }) : super(key: key);
+  @override
+  State<_OrderSuccessDialog> createState() => _OrderSuccessDialogState();
+}
+
+class _OrderSuccessDialogState extends State<_OrderSuccessDialog> {
+  bool showMessage = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          showMessage = true;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: const Color.fromARGB(255, 189, 166, 135),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Coffee Animation
+            SizedBox(
+              height: 200,
+              child: Lottie.asset(
+                'assets/animations/coffee_success.json',
+                repeat: false,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            if (showMessage) ...[
+              const Text(
+                "Your order has been placed :)",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white54,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 14,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => HomeScreen(
+                        token: widget.token,
+                        fullName: widget.fullName,
+                        email: widget.email,
+                      ),
+                    ),
+                    (route) => false,
+                  );
+                },
+                child: const Text("OK", style: TextStyle(color: Colors.brown)),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
