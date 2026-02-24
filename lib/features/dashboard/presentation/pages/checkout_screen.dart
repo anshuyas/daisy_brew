@@ -358,7 +358,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             final productsForApi = currentItems
                 .map(
                   (item) => {
-                    'product': item.product.id,
+                    'productId': item.product.id,
+                    'name': item.product.name,
                     'quantity': item.quantity,
                     'price': item.product.price,
                   },

@@ -1,4 +1,5 @@
 import 'package:daisy_brew/features/dashboard/presentation/pages/admin_menu_screen.dart';
+import 'package:daisy_brew/features/orders/presentation/pages/admin_orders_page.dart';
 import 'package:daisy_brew/features/user_management/presentation/pages/user_management_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -183,7 +184,12 @@ class AdminDashboardPage extends ConsumerWidget {
                           title: "Orders",
                           icon: Icons.receipt_long,
                           onTap: () {
-                            // TODO: Navigate to Orders page
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AdminOrdersPage(),
+                              ),
+                            );
                           },
                         ),
                         _AdminQuickLinkCard(
