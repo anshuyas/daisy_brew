@@ -23,6 +23,10 @@ class AdminOrdersPage extends ConsumerWidget {
               final order = orders[index];
 
               return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: ListTile(
                   title: Text(order.customerName),
                   subtitle: Text(

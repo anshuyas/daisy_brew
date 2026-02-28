@@ -313,12 +313,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            Column(
-              children: [
-                _paymentOption("Cash on Delivery"),
-                _paymentOption("eSewa"),
-              ],
-            ),
+            Column(children: [_paymentOption("Cash on Delivery")]),
 
             const SizedBox(height: 100),
           ],

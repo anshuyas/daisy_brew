@@ -55,7 +55,7 @@ class AdminMenuPage extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.brown,
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white),
         onPressed: () {
           _showProductDialog(context, ref);
         },
