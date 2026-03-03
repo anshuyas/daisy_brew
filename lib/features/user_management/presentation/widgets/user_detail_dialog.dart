@@ -1,3 +1,4 @@
+import 'package:daisy_brew/features/dashboard/presentation/providers/admin_dashboard_provider.dart';
 import 'package:daisy_brew/features/orders/data/models/order_model.dart';
 import 'package:daisy_brew/features/orders/data/datasources/order_remote_datasource.dart';
 import 'package:daisy_brew/core/api/api_client.dart';
@@ -252,6 +253,10 @@ class _UserDetailDialogState extends ConsumerState<UserDetailDialog> {
                 await ref
                     .read(userProvider.notifier)
                     .deleteUser(widget.user!.id);
+
+                // Refresh the dashboard
+                ref.invalidate(adminDashboardProvider);
+
                 Navigator.pop(context, true);
               }
             },
@@ -269,6 +274,7 @@ class _UserDetailDialogState extends ConsumerState<UserDetailDialog> {
                   password: passwordController.text,
                   role: selectedRole,
                 );
+                ref.invalidate(adminDashboardProvider);
               } else {
                 // Update role if changed
                 if (selectedRole != widget.user!.role) {

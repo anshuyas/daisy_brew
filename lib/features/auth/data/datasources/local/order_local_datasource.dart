@@ -2,10 +2,12 @@
 import 'dart:convert';
 
 import 'package:daisy_brew/features/dashboard/domain/entities/order_entity.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OrderLocalDataSource {
   static final List<Order> _orders = [];
+  static final ValueNotifier<List<Order>> ordersNotifier = ValueNotifier([]);
 
   static List<Order> get orders => _orders;
 
@@ -21,6 +23,8 @@ class OrderLocalDataSource {
       _orders.clear();
       _orders.addAll(jsonList.map((json) => Order.fromJson(json)).toList());
     }
+
+    ordersNotifier.value = List.from(_orders);
   }
 
   // Save all orders to local storage
@@ -30,6 +34,8 @@ class OrderLocalDataSource {
       _orders.map((order) => order.toJson()).toList(),
     );
     await prefs.setString(_ordersKey, jsonString);
+
+    ordersNotifier.value = List.from(_orders);
   }
 
   // Add a new order and save
@@ -44,7 +50,7 @@ class OrderLocalDataSource {
     await _saveOrders();
   }
 
-  // Optional: update status of a specific order
+  // update order status
   static Future<void> updateOrderStatus(
     String orderNumber,
     String newStatus,
@@ -58,6 +64,10 @@ class OrderLocalDataSource {
         status: newStatus,
         total: _orders[index].total,
       );
+
+      final updatedOrder = _orders.removeAt(index);
+      _orders.insert(0, updatedOrder);
+
       await _saveOrders();
     }
   }

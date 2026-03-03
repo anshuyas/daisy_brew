@@ -1,3 +1,4 @@
+import 'package:daisy_brew/features/auth/data/datasources/local/order_local_datasource.dart';
 import 'package:daisy_brew/features/orders/presentation/pages/order_details_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -88,11 +89,46 @@ class _AdminOrdersPageState extends ConsumerState<AdminOrdersPage> {
                                 ),
                               )
                               .toList(),
-                          onChanged: (newStatus) {
+                          onChanged: (newStatus) async {
                             if (newStatus != null) {
-                              ref
-                                  .read(orderProvider.notifier)
-                                  .updateStatus(order.id, newStatus);
+                              final notifier = ref.read(orderProvider.notifier);
+
+                              try {
+                                // 1. Update status in backend
+                                await notifier.updateStatus(
+                                  order.id,
+                                  newStatus,
+                                );
+
+                                // 2. Update local storage for user screens
+                                // This will also move the order to the top to act as a notification
+                                await OrderLocalDataSource.updateOrderStatus(
+                                  order.id,
+                                  newStatus.value,
+                                );
+
+                                // 3. Refresh provider so the admin list updates immediately
+                                ref.invalidate(orderProvider);
+
+                                // 4. Optional: show a confirmation snackbar
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Order #${order.id} status updated to ${newStatus.value}',
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              } catch (e) {
+                                // Handle error gracefully
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Failed to update order: $e'),
+                                    duration: const Duration(seconds: 2),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
                             }
                           },
                         ),

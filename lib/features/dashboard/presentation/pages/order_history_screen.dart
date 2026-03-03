@@ -1,59 +1,81 @@
-import 'package:daisy_brew/core/api/api_client.dart';
 import 'package:daisy_brew/features/auth/data/datasources/local/order_local_datasource.dart';
 import 'package:daisy_brew/features/dashboard/domain/entities/order_entity.dart';
-import 'package:daisy_brew/features/orders/data/datasources/order_remote_datasource.dart';
-import 'package:daisy_brew/features/orders/domain/entities/order_status.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class OrderHistoryScreen extends StatefulWidget {
+class OrderHistoryScreen extends StatelessWidget {
   final String token;
   const OrderHistoryScreen({super.key, required this.token});
 
   @override
-  State<OrderHistoryScreen> createState() => _OrderHistoryScreenState();
-}
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: const Text('Order History'),
+        backgroundColor: const Color(0xFF8C7058),
+      ),
+      body: ValueListenableBuilder<List<Order>>(
+        valueListenable: OrderLocalDataSource.ordersNotifier,
+        builder: (context, orders, _) {
+          if (orders.isEmpty) {
+            return const Center(
+              child: Text('No orders yet', style: TextStyle(fontSize: 18)),
+            );
+          }
 
-class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
-  List<Order> orders = [];
+          final groupedOrders = _groupOrdersByDate(orders);
 
-  @override
-  void initState() {
-    super.initState();
-    _loadOrders();
-  }
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: groupedOrders.entries.map((entry) {
+              final dateLabel = entry.key;
+              final ordersForDate = entry.value;
 
-  Future<void> _loadOrders() async {
-    final apiClient = ApiClient();
-    final orderApi = OrderRemoteDatasource(apiClient);
-
-    final backendOrders = await orderApi.getMyOrders();
-
-    await OrderLocalDataSource.loadOrders();
-
-    for (var backendOrder in backendOrders) {
-      final orderId = backendOrder.id;
-      final newStatus = backendOrder.status.value;
-
-      final index = OrderLocalDataSource.orders.indexWhere(
-        (o) => o.orderNumber == orderId,
-      );
-
-      if (index != -1) {
-        if (OrderLocalDataSource.orders[index].status != newStatus) {
-          await OrderLocalDataSource.updateOrderStatus(orderId, newStatus);
-        }
-      }
-    }
-
-    setState(() {
-      orders = OrderLocalDataSource.orders;
-    });
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    dateLabel,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...ordersForDate.map((order) {
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      child: ListTile(
+                        title: Text('Your Order #${order.orderNumber}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Status: ${order.status}'),
+                            Text(
+                              'Placed on: ${DateFormat('dd MMM yyyy, hh:mm a').format(order.dateTime)}',
+                            ),
+                            Text(
+                              'Total: Rs. ${order.total.toStringAsFixed(2)}',
+                            ),
+                          ],
+                        ),
+                        isThreeLine: true,
+                      ),
+                    );
+                  }).toList(),
+                  const SizedBox(height: 16),
+                ],
+              );
+            }).toList(),
+          );
+        },
+      ),
+    );
   }
 
   Map<String, List<Order>> _groupOrdersByDate(List<Order> orders) {
     final Map<String, List<Order>> grouped = {};
-
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
@@ -74,77 +96,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         key = 'Earlier';
       }
 
-      if (!grouped.containsKey(key)) grouped[key] = [];
-      grouped[key]!.add(order);
+      grouped.putIfAbsent(key, () => []).add(order);
     }
 
     return grouped;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final groupedOrders = _groupOrdersByDate(orders);
-
-    if (orders.isEmpty) {
-      return Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: AppBar(
-          title: const Text('Order History'),
-          backgroundColor: const Color(0xFF8C7058),
-        ),
-        body: const Center(
-          child: Text('No orders yet', style: TextStyle(fontSize: 18)),
-        ),
-      );
-    }
-
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Order History'),
-        backgroundColor: const Color(0xFF8C7058),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: groupedOrders.entries.map((entry) {
-          final dateLabel = entry.key;
-          final ordersForDate = entry.value;
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                dateLabel,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              ...ordersForDate.map((order) {
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 6),
-                  child: ListTile(
-                    title: Text('Your Order #${order.orderNumber}'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Status: ${order.status}'),
-                        Text(
-                          'Placed on: ${DateFormat('dd MMM yyyy, hh:mm a').format(order.dateTime)}',
-                        ),
-                        Text('Total: Rs. ${order.total.toStringAsFixed(2)}'),
-                      ],
-                    ),
-                    isThreeLine: true,
-                  ),
-                );
-              }).toList(),
-              const SizedBox(height: 16),
-            ],
-          );
-        }).toList(),
-      ),
-    );
   }
 }
