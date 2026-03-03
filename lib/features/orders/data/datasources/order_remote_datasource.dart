@@ -66,4 +66,17 @@ class OrderRemoteDatasource {
       rethrow;
     }
   }
+
+  Future<List<OrderModel>> getOrdersByUser(String userId) async {
+    try {
+      final response = await apiClient.get('/orders/user/$userId');
+
+      print("ORDERS FOR USER $userId: $response");
+
+      return (response as List).map((e) => OrderModel.fromJson(e)).toList();
+    } catch (e) {
+      print("GET ORDERS BY USER ERROR: $e");
+      throw Exception('Failed to load orders for user $userId: $e');
+    }
+  }
 }

@@ -27,6 +27,17 @@ class OrderNotifier extends AsyncNotifier<List<AdminOrder>> {
     await repository.updateOrderStatus(id, status);
     await refreshOrders();
   }
+
+  Future<void> loadOrdersForUser(String userId) async {
+    state = const AsyncLoading();
+
+    try {
+      final orders = await repository.getOrdersByUser(userId);
+      state = AsyncData(orders);
+    } catch (e) {
+      state = AsyncError(e, StackTrace.current);
+    }
+  }
 }
 
 final orderProvider = AsyncNotifierProvider<OrderNotifier, List<AdminOrder>>(

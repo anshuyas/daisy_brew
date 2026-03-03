@@ -1,5 +1,7 @@
 import 'package:daisy_brew/features/auth/presentation/providers/auth_provider.dart';
 import 'package:daisy_brew/features/user_management/data/datasources/remote/user_remote_datasource.dart';
+import 'package:daisy_brew/features/user_management/domain/usecases/create_user_usecase.dart';
+import 'package:daisy_brew/features/user_management/domain/usecases/update_userdetail_usecase.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -72,4 +74,16 @@ final updateUserRoleUseCaseProvider = Provider<UpdateUserRoleUseCase>((ref) {
 final deleteUserUseCaseProvider = Provider<DeleteUserUseCase>((ref) {
   final repo = ref.watch(userRepositoryProvider);
   return DeleteUserUseCase(repo);
+});
+
+final createUserUseCaseProvider = Provider<CreateUserUseCase>((ref) {
+  final repo = ref.watch(userRepositoryProvider);
+  return CreateUserUseCase(repo);
+});
+
+final updateUserDetailsUseCaseProvider = Provider<UpdateUserDetailsUseCase>((
+  ref,
+) {
+  final repo = ref.watch(userRepositoryProvider);
+  return UpdateUserDetailsUseCase(repo);
 });

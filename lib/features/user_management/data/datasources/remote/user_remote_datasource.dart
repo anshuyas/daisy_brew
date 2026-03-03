@@ -36,4 +36,41 @@ class UserRemoteDatasource {
       throw Exception('Failed to delete user: $e');
     }
   }
+
+  Future<Map<String, dynamic>> createUser({
+    required String name,
+    required String email,
+    required String password,
+    required String role,
+  }) async {
+    try {
+      final response = await dio.post(
+        '/admin/users',
+        data: {
+          'fullName': name,
+          'email': email,
+          'password': password,
+          'role': role,
+        },
+      );
+      return response.data;
+    } catch (e) {
+      throw Exception('Failed to create user: $e');
+    }
+  }
+
+  Future<void> updateUserDetails({
+    required String userId,
+    required String name,
+    required String email,
+  }) async {
+    try {
+      await dio.put(
+        '/admin/users/$userId',
+        data: {'fullName': name, 'email': email},
+      );
+    } catch (e) {
+      throw Exception('Failed to update user details: $e');
+    }
+  }
 }

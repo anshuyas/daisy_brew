@@ -41,4 +41,9 @@ class OrderRepositoryImpl implements OrderRepository {
       date: date,
     );
   }
+
+  @override
+  Future<List<AdminOrder>> getOrdersByUser(String userId) {
+    return remoteDatasource.getOrdersByUser(userId);
+  }
 }

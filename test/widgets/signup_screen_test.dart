@@ -34,9 +34,7 @@ void main() {
     );
   }
 
-  // -------------------------------
   // UI Elements
-  // -------------------------------
   group('RegisterScreen - UI Elements', () {
     testWidgets('should display header, form fields, button, and login link', (
       tester,
@@ -55,9 +53,7 @@ void main() {
     });
   });
 
-  // -------------------------------
   // Form Input
-  // -------------------------------
   group('RegisterScreen - Form Input', () {
     testWidgets('should allow entering all fields', (tester) async {
       await tester.pumpWidget(createTestWidget());
@@ -77,9 +73,7 @@ void main() {
     });
   });
 
-  // -------------------------------
   // Form Validation
-  // -------------------------------
   group('RegisterScreen - Form Validation', () {
     testWidgets('should show error when Full Name is empty', (tester) async {
       await tester.pumpWidget(createTestWidget());
@@ -176,9 +170,7 @@ void main() {
     });
   });
 
-  // -------------------------------
   // Form Submission
-  // -------------------------------
   group('RegisterScreen - Form Submission', () {
     testWidgets('should call register usecase when form is valid', (
       tester,

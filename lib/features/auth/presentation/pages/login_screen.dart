@@ -32,7 +32,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (next.user != null && next.user!.token != null) {
           ref
               .read(authStateProvider.notifier)
-              .setAuth(token: next.user!.token!, email: next.user!.email!);
+              .setAuth(token: next.user!.token!, email: next.user!.email);
 
           if (next.user!.role == 'admin') {
             Navigator.pushReplacement(
@@ -148,8 +148,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty)
+                              if (value == null || value.isEmpty) {
                                 return 'Email is required';
+                              }
                               if (!value.contains('@')) return 'Invalid email';
                               return null;
                             },

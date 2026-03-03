@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/profile_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  // Mock SharedPreferences before each test
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({
+      'testuser@example.com-fullName': 'Test User',
+      'testuser@example.com-email': 'testuser@example.com',
+      'testuser@example.com-profile_picture': '',
+    });
+  });
+
   group('ProfileScreen Widget Tests', () {
     testWidgets('should display user full name', (tester) async {
       await tester.pumpWidget(
@@ -11,12 +21,14 @@ void main() {
             token: 'fake_token',
             fullName: 'Test User',
             email: 'testuser@example.com',
-            onProfileUpdated: (String newURL) {},
+            onProfileUpdated: (String newURL, {String? updatedName}) {},
           ),
         ),
       );
 
+      // Wait for initState and SharedPreferences loading
       await tester.pumpAndSettle();
+
       expect(find.text('Test User'), findsOneWidget);
     });
 
@@ -27,7 +39,7 @@ void main() {
             token: 'fake_token',
             fullName: 'Test User',
             email: 'testuser@example.com',
-            onProfileUpdated: (String newURL) {},
+            onProfileUpdated: (String newURL, {String? updatedName}) {},
           ),
         ),
       );
@@ -42,8 +54,8 @@ void main() {
           home: ProfileScreen(
             token: 'fake_token',
             fullName: 'Test User',
-            onProfileUpdated: (String newURL) {},
             email: 'testuser@example.com',
+            onProfileUpdated: (String newURL, {String? updatedName}) {},
           ),
         ),
       );
@@ -59,7 +71,7 @@ void main() {
             token: 'fake_token',
             fullName: 'Test User',
             email: 'testuser@example.com',
-            onProfileUpdated: (String newURL) {},
+            onProfileUpdated: (String newURL, {String? updatedName}) {},
           ),
         ),
       );

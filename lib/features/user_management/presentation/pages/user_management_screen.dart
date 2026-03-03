@@ -70,6 +70,12 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage> {
                           subtitle: Text(
                             '${user.email} • Orders: ${user.totalOrders}',
                           ),
+                          onTap: () async {
+                            await showDialog(
+                              context: context,
+                              builder: (_) => UserDetailDialog(user: user),
+                            );
+                          },
                           trailing: PopupMenuButton<String>(
                             onSelected: (value) async {
                               if (value == 'toggle_role') {
@@ -165,6 +171,24 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.brown,
+        child: const Icon(Icons.add),
+        onPressed: () async {
+          final created = await showDialog<bool>(
+            context: context,
+            builder: (_) => const UserDetailDialog(
+              isCreate: true, // open in create mode
+            ),
+          );
+
+          if (created == true) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("User created successfully")),
+            );
+          }
+        },
       ),
     );
   }

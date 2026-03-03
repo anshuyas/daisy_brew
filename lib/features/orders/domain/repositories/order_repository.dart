@@ -7,6 +7,8 @@ abstract class OrderRepository {
 
   Future<AdminOrder> getOrderById(String id);
 
+  Future<List<AdminOrder>> getOrdersByUser(String userId);
+
   Future<void> updateOrderStatus(String id, OrderStatus status);
 
   Future<List<AdminOrder>> searchOrders(String query);
