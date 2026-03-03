@@ -17,6 +17,15 @@ class AdminDashboardPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text("Admin Dashboard"),
         backgroundColor: Colors.brown,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () {
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+          ),
+        ],
       ),
       body: dashboardState.when(
         loading: () => const Center(child: CircularProgressIndicator()),

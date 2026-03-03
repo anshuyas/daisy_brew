@@ -32,13 +32,10 @@ class _AdminOrdersPageState extends ConsumerState<AdminOrdersPage> {
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(),
               ),
-              onChanged: (value) async {
+              onChanged: (value) {
                 setState(() {
                   searchQuery = value;
                 });
-
-                // Call the provider's search method
-                await ref.read(orderProvider.notifier).search(value);
               },
             ),
           ),
@@ -48,14 +45,23 @@ class _AdminOrdersPageState extends ConsumerState<AdminOrdersPage> {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text(e.toString())),
               data: (orders) {
-                if (orders.isEmpty) {
+                // Filter orders based on search query
+                final filteredOrders = orders
+                    .where(
+                      (o) => o.customerName.toLowerCase().contains(
+                        searchQuery.toLowerCase(),
+                      ),
+                    )
+                    .toList();
+
+                if (filteredOrders.isEmpty) {
                   return const Center(child: Text("No orders found"));
                 }
 
                 return ListView.builder(
-                  itemCount: orders.length,
+                  itemCount: filteredOrders.length,
                   itemBuilder: (_, index) {
-                    final order = orders[index];
+                    final order = filteredOrders[index];
 
                     return Card(
                       margin: const EdgeInsets.symmetric(
@@ -101,16 +107,15 @@ class _AdminOrdersPageState extends ConsumerState<AdminOrdersPage> {
                                 );
 
                                 // 2. Update local storage for user screens
-                                // This will also move the order to the top to act as a notification
                                 await OrderLocalDataSource.updateOrderStatus(
                                   order.id,
                                   newStatus.value,
                                 );
 
-                                // 3. Refresh provider so the admin list updates immediately
+                                // 3. Refresh provider so admin list updates immediately
                                 ref.invalidate(orderProvider);
 
-                                // 4. Optional: show a confirmation snackbar
+                                // 4. Show confirmation
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
@@ -120,7 +125,7 @@ class _AdminOrdersPageState extends ConsumerState<AdminOrdersPage> {
                                   ),
                                 );
                               } catch (e) {
-                                // Handle error gracefully
+                                // Error handling
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text('Failed to update order: $e'),

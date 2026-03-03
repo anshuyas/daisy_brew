@@ -5,11 +5,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../providers/product_provider.dart';
 
-class AdminMenuPage extends ConsumerWidget {
+class AdminMenuPage extends ConsumerStatefulWidget {
   const AdminMenuPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AdminMenuPage> createState() => _AdminMenuPageState();
+}
+
+class _AdminMenuPageState extends ConsumerState<AdminMenuPage> {
+  String searchQuery = '';
+
+  @override
+  Widget build(BuildContext context) {
     final productsState = ref.watch(productProvider);
 
     return Scaffold(
@@ -17,41 +24,81 @@ class AdminMenuPage extends ConsumerWidget {
         title: const Text("Menu Management"),
         backgroundColor: Colors.brown,
       ),
-      body: productsState.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Error: $err')),
-        data: (products) => ListView.builder(
-          itemCount: products.length,
-          itemBuilder: (context, index) {
-            final p = products[index];
-            return Card(
-              child: ListTile(
-                leading: _buildProductImage(p),
-                title: Text(p.name),
-                subtitle: Text("Rs. ${p.price} • ${p.category}"),
-                trailing: Switch(
-                  value: p.isAvailable,
-                  onChanged: (val) async {
-                    try {
-                      await ref
-                          .read(productProvider.notifier)
-                          .toggleAvailability(p.id);
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Failed to toggle availability'),
-                        ),
-                      );
-                    }
-                  },
-                ),
-                onTap: () {
-                  _showProductDialog(context, ref, product: p);
-                },
+      body: Column(
+        children: [
+          // Search bar
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              decoration: const InputDecoration(
+                labelText: 'Search products',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
               ),
-            );
-          },
-        ),
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                });
+              },
+            ),
+          ),
+          // Product list
+          Expanded(
+            child: productsState.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, _) => Center(child: Text('Error: $err')),
+              data: (products) {
+                // Filter products based on search query
+                final filteredProducts = products
+                    .where(
+                      (p) => p.name.toLowerCase().contains(
+                        searchQuery.toLowerCase(),
+                      ),
+                    )
+                    .toList();
+
+                if (filteredProducts.isEmpty) {
+                  return const Center(child: Text("No products found"));
+                }
+
+                return ListView.builder(
+                  itemCount: filteredProducts.length,
+                  itemBuilder: (context, index) {
+                    final p = filteredProducts[index];
+                    return Card(
+                      child: ListTile(
+                        leading: _buildProductImage(p),
+                        title: Text(p.name),
+                        subtitle: Text("Rs. ${p.price} • ${p.category}"),
+                        trailing: Switch(
+                          value: p.isAvailable,
+                          onChanged: (val) async {
+                            try {
+                              await ref
+                                  .read(productProvider.notifier)
+                                  .toggleAvailability(p.id);
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Failed to toggle availability',
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        onTap: () {
+                          _showProductDialog(context, ref, product: p);
+                        },
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.brown,
