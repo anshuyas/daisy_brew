@@ -18,9 +18,15 @@ class OrderRemoteDatasource {
   }
 
   Future<List<OrderModel>> getOrders() async {
-    final response = await apiClient.get('/orders');
-
-    return (response as List).map((e) => OrderModel.fromJson(e)).toList();
+    try {
+      final response = await apiClient.get('/orders');
+      print("GET /orders RESPONSE: $response");
+      return (response as List).map((e) => OrderModel.fromJson(e)).toList();
+    } catch (e, st) {
+      print("ERROR IN getOrders(): $e");
+      print(st);
+      rethrow; // important so the provider sees the error
+    }
   }
 
   Future<OrderModel> getOrderById(String id) async {

@@ -67,9 +67,7 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage> {
                       return Card(
                         child: ListTile(
                           title: Text(user.name),
-                          subtitle: Text(
-                            '${user.email} • Orders: ${user.totalOrders}',
-                          ),
+                          subtitle: Text('${user.email}'),
                           onTap: () async {
                             await showDialog(
                               context: context,
@@ -174,7 +172,7 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.brown,
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white),
         onPressed: () async {
           final created = await showDialog<bool>(
             context: context,
