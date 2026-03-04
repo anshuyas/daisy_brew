@@ -1,5 +1,6 @@
 import 'package:daisy_brew/core/constants/hive_table_constants.dart';
 import 'package:daisy_brew/features/auth/data/models/auth_hive_model.dart';
+import 'package:daisy_brew/features/dashboard/data/models/tea_hive_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
@@ -19,6 +20,9 @@ class HiveService {
     if (!Hive.isAdapterRegistered(HiveTableConstant.authTypeId)) {
       Hive.registerAdapter(AuthHiveModelAdapter());
     }
+    if (!Hive.isAdapterRegistered(HiveTableConstant.teaProductTypeId)) {
+      Hive.registerAdapter(TeaHiveModelAdapter());
+    }
   }
 
   Future<void> openBoxes() async {
@@ -26,6 +30,43 @@ class HiveService {
     await Hive.openBox(
       HiveTableConstant.appSettingsTable,
     ); // For current_auth_id
+    await Hive.openBox<TeaHiveModel>(HiveTableConstant.teaTable);
+  }
+
+  // Box getter for Tea products
+  Box<TeaHiveModel> get _teaBox =>
+      Hive.box<TeaHiveModel>(HiveTableConstant.teaTable);
+
+  // --- Tea CRUD methods ---
+  Future<List<TeaHiveModel>> getAllTeaProducts() async {
+    return _teaBox.values.toList();
+  }
+
+  Future<void> addTeaProduct(TeaHiveModel tea) async {
+    await _teaBox.put(tea.id, tea);
+  }
+
+  Future<void> updateTeaProduct(TeaHiveModel tea) async {
+    await _teaBox.put(tea.id, tea);
+  }
+
+  Future<void> toggleTeaAvailability(String id) async {
+    final tea = _teaBox.get(id);
+    if (tea != null) {
+      final updated = TeaHiveModel(
+        id: tea.id,
+        name: tea.name,
+        image: tea.image,
+        price: tea.price,
+        isAvailable: !tea.isAvailable,
+        category: tea.category,
+      );
+      await _teaBox.put(id, updated);
+    }
+  }
+
+  Future<void> deleteTeaProduct(String id) async {
+    await _teaBox.delete(id);
   }
 
   Future<void> close() async {

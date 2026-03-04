@@ -17,11 +17,8 @@ class ProductCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("IMAGE PATH RECEIVED >>> '$imagePath'");
-    print(
-      "STARTS WITH HTTP? >>> ${imagePath.toLowerCase().startsWith('http')}",
-    );
     final theme = Theme.of(context);
+
     return Container(
       decoration: BoxDecoration(
         color: theme.cardColor,
@@ -34,16 +31,7 @@ class ProductCardWidget extends StatelessWidget {
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: imagePath.contains('http')
-                  ? CachedNetworkImage(
-                      imageUrl: imagePath,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) =>
-                          const Center(child: CircularProgressIndicator()),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.broken_image),
-                    )
-                  : Image.asset(imagePath, fit: BoxFit.cover),
+              child: _buildImage(),
             ),
           ),
           const SizedBox(height: 8),
@@ -67,5 +55,26 @@ class ProductCardWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildImage() {
+    if (imagePath == 'assets/images/tea_placeholder.png') {
+      return Image.asset(imagePath, fit: BoxFit.cover);
+    }
+
+    if (imagePath.toLowerCase().startsWith('http')) {
+      return CachedNetworkImage(
+        imageUrl: imagePath,
+        fit: BoxFit.cover,
+        placeholder: (context, url) =>
+            const Center(child: CircularProgressIndicator()),
+        errorWidget: (context, url, error) => Image.asset(
+          'assets/images/no_network_placeholder.png',
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+
+    return Image.asset(imagePath, fit: BoxFit.cover);
   }
 }

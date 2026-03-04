@@ -1,10 +1,15 @@
 import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:daisy_brew/core/services/connectivity/network_info.dart';
+import 'package:daisy_brew/features/dashboard/data/models/tea_hive_model.dart';
 import 'package:daisy_brew/features/dashboard/domain/entities/product_entity.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/product_detail_screen.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/cart_screen.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/notification_screen.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/order_history_screen.dart';
+import 'package:daisy_brew/features/dashboard/presentation/providers/tea_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shake/shake.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,7 +19,7 @@ import '../widgets/header_widget.dart';
 import 'profile_screen.dart';
 import '../providers/product_usecase_providers.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   final String token;
   final String fullName;
   final String email;
@@ -30,26 +35,24 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   int selectedCategoryIndex = 0;
   int bottomNavIndex = 0;
-
   String currentFullName = '';
-
   ShakeDetector? _shakeDetector;
-
   String? profileImageUrl;
-
   final TextEditingController _searchController = TextEditingController();
   String searchQuery = '';
-
   List<Product> apiProducts = [];
+  List<Product> teaProductsList = [];
+  bool isOnline = true;
 
   final List<String> categories = [
     'Coffee',
     'Matcha',
     'Smoothies',
     'Bubble Tea',
+    'Tea',
   ];
 
   final Map<String, List<Product>> categoryProducts = {
@@ -285,33 +288,47 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _initConnectivity();
     _fetchProfilePicture();
     _loadProfilePictureFromPrefs();
-    _fetchApiProducts();
 
     currentFullName = widget.fullName;
 
-    // Shake to logout
     _shakeDetector = ShakeDetector.autoStart(
       onPhoneShake: (event) => _logoutUser(),
       shakeThresholdGravity: 2.7,
     );
+
+    _loadTeaProducts(); // Load Tea products on startup
+  }
+
+  Future<void> _initConnectivity() async {
+    final online = await ref.read(networkInfoProvider).isConnected;
+    setState(() => isOnline = online);
+
+    // Listen for connectivity changes
+    Connectivity().onConnectivityChanged.listen((_) async {
+      final connected = await ref.read(networkInfoProvider).isConnected;
+      setState(() => isOnline = connected);
+      if (categories[selectedCategoryIndex] == 'Tea') {
+        _loadTeaProducts(); // reload tea when connection changes
+      }
+    });
   }
 
   Future<void> _fetchProfilePicture() async {
     try {
+      if (!isOnline) return;
       final dio = Dio();
       dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
-      final baseUrl = 'http://192.168.254.50:3000/api/v1';
-      final response = await dio.get('$baseUrl/profile');
+      final response = await dio.get(
+        'http://192.168.254.50:3000/api/v1/profile',
+      );
 
       if (response.data != null && response.data['profilePicture'] != null) {
         final imageUrl =
             'http://192.168.254.50:3000/public/profile_pictures/${response.data['profilePicture']}';
-
-        if (mounted && (profileImageUrl == null || profileImageUrl!.isEmpty)) {
-          setState(() => profileImageUrl = imageUrl);
-        }
+        if (mounted) setState(() => profileImageUrl = imageUrl);
       }
     } catch (e) {
       debugPrint('Failed to fetch profile picture: $e');
@@ -320,6 +337,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _fetchApiProducts() async {
     try {
+      if (!isOnline) return;
       final dio = Dio();
       dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
       final response = await dio.get(
@@ -327,33 +345,27 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       if (response.data != null) {
-        final List<Product> fetchedProducts = (response.data as List).map((
-          json,
-        ) {
-          final p = Product.fromJson(json);
-
-          // Prepend full URL to image if it's just a filename
-          String imageUrl = p.image.trim();
-          if (!imageUrl.startsWith('http')) {
-            imageUrl =
-                'http://192.168.254.50:3000/public/product_images/${imageUrl}';
-          }
-
-          return Product(
-            id: p.id,
-            name: p.name,
-            image: imageUrl,
-            price: p.price,
-            isAvailable: p.isAvailable,
-            category: p.category.trim(),
-          );
-        }).toList();
+        final List<Product> fetchedProducts = (response.data as List)
+            .map((json) => Product.fromJson(json))
+            .map((p) {
+              String imageUrl = p.image.trim();
+              if (!imageUrl.startsWith('http')) {
+                imageUrl =
+                    'http://192.168.254.50:3000/public/product_images/$imageUrl';
+              }
+              return Product(
+                id: p.id,
+                name: p.name,
+                image: imageUrl,
+                price: p.price,
+                isAvailable: p.isAvailable,
+                category: p.category.trim(),
+              );
+            })
+            .toList();
 
         if (!mounted) return;
-
-        setState(() {
-          apiProducts = fetchedProducts;
-        });
+        setState(() => apiProducts = fetchedProducts);
       }
     } catch (e) {
       debugPrint('Failed to fetch API products: $e');
@@ -363,11 +375,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadProfilePictureFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     final savedUrl = prefs.getString('${widget.email}-profile_picture');
-
     if (savedUrl != null && savedUrl.isNotEmpty) {
-      setState(() {
-        profileImageUrl = savedUrl;
-      });
+      setState(() => profileImageUrl = savedUrl);
     }
   }
 
@@ -379,17 +388,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _shakeDetector?.stopListening();
-    super.dispose();
-  }
-
   void _onCategoryTap(int index) {
     setState(() => selectedCategoryIndex = index);
     searchQuery = '';
     _searchController.clear();
+
+    if (categories[index] == 'Tea') {
+      _loadTeaProducts();
+    }
   }
 
   void _onCartTap() {
@@ -407,33 +413,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onBottomNavTap(int index) {
     if (index == bottomNavIndex) return;
-
     setState(() => bottomNavIndex = index);
 
     if (index == 1) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => OrderHistoryScreen(token: widget.token),
+          builder: (_) => OrderHistoryScreen(token: widget.token),
         ),
       );
     } else if (index == 2) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => NotificationScreen(token: widget.token),
+          builder: (_) => NotificationScreen(token: widget.token),
         ),
       );
     } else if (index == 3) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ProfileScreen(
+          builder: (_) => ProfileScreen(
             token: widget.token,
             fullName: currentFullName,
             email: widget.email,
             initialProfilePicture: profileImageUrl,
-            onProfileUpdated: (newUrl, {String? updatedName}) async {
+            onProfileUpdated: (newUrl, {String? updatedName}) {
               setState(() {
                 profileImageUrl = newUrl;
                 if (updatedName != null) currentFullName = updatedName;
@@ -445,28 +450,51 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _loadTeaProducts() async {
+    await _fetchApiProducts();
+
+    final teas = await ref.read(teaProductsProvider.future);
+    final hiveTeas = teas.map((t) => t.toEntity()).toList();
+
+    final apiTeas = isOnline
+        ? apiProducts
+              .where((p) => p.category.trim().toLowerCase() == 'tea')
+              .toList()
+        : [];
+
+    List<Product> merged = [...hiveTeas, ...apiTeas];
+
+    if (!isOnline) {
+      merged = merged
+          .map(
+            (p) => Product(
+              id: p.id,
+              name: p.name,
+              price: p.price,
+              category: p.category,
+              isAvailable: p.isAvailable,
+              image: 'assets/images/tea_placeholder.png',
+            ),
+          )
+          .toList();
+    }
+
+    if (mounted) {
+      setState(() {
+        teaProductsList = merged;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _shakeDetector?.stopListening();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Hardcoded products for current category
-    final hardcoded = categoryProducts[categories[selectedCategoryIndex]] ?? [];
-
-    // API products for current category
-    final fromApi = apiProducts
-        .where(
-          (p) =>
-              p.category.trim().toLowerCase() ==
-              categories[selectedCategoryIndex].toLowerCase(),
-        )
-        .toList();
-
-    // Combine both
-    final allProducts = [...hardcoded, ...fromApi];
-
-    // Apply search filter
-    final currentProducts = allProducts.where((p) {
-      return p.name.toLowerCase().contains(searchQuery.toLowerCase());
-    }).toList();
-
     return Scaffold(
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
@@ -496,9 +524,7 @@ class _HomeScreenState extends State<HomeScreen> {
               fullName: currentFullName,
               profilePictureUrl: profileImageUrl,
               searchController: _searchController,
-              onSearchChanged: (value) {
-                setState(() => searchQuery = value);
-              },
+              onSearchChanged: (value) => setState(() => searchQuery = value),
             ),
             const SizedBox(height: 16),
             Padding(
@@ -521,46 +547,108 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: currentProducts.isEmpty
-                    ? const Center(
-                        child: Text(
-                          "No drinks found",
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      )
-                    : GridView.builder(
-                        itemCount: currentProducts.length,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              childAspectRatio: 0.75,
-                            ),
-                        itemBuilder: (context, index) {
-                          final product = currentProducts[index];
+                child: Builder(
+                  builder: (context) {
+                    List<Product> currentProducts =
+                        categories[selectedCategoryIndex] == 'Tea'
+                        ? teaProductsList
+                        : [
+                            ...(categoryProducts[categories[selectedCategoryIndex]] ??
+                                []),
+                            ...?isOnline
+                                ? apiProducts
+                                      .where(
+                                        (p) =>
+                                            p.category.trim().toLowerCase() ==
+                                            categories[selectedCategoryIndex]
+                                                .toLowerCase(),
+                                      )
+                                      .toList()
+                                : [],
+                          ];
 
-                          return ProductCardWidget(
-                            name: product.name,
-                            price: 'Rs. ${product.price}',
-                            imagePath: product.image,
-                            onAddTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ProductDetailScreen(
-                                    product: product,
-                                    category: categories[selectedCategoryIndex],
-                                    token: widget.token,
-                                    fullName: currentFullName,
-                                    email: widget.email,
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
+                    if (searchQuery.isNotEmpty) {
+                      currentProducts = currentProducts
+                          .where(
+                            (p) => p.name.toLowerCase().contains(
+                              searchQuery.toLowerCase(),
+                            ),
+                          )
+                          .toList();
+                    }
+
+                    if (currentProducts.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/images/tea_placeholder.png',
+                              width: 200,
+                              height: 200,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              isOnline
+                                  ? "No drinks found"
+                                  : "No network connection",
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return GridView.builder(
+                      itemCount: currentProducts.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            childAspectRatio: 0.75,
+                          ),
+                      itemBuilder: (context, index) {
+                        final product = currentProducts[index];
+                        String imagePath = product.image.isNotEmpty
+                            ? product.image
+                            : 'assets/images/tea_placeholder.png';
+
+                        if (!isOnline && imagePath.startsWith('http')) {
+                          imagePath = 'assets/images/tea_placeholder.png';
+                        }
+
+                        final productName = product.name;
+                        final productPrice = "Rs. ${product.price}";
+
+                        return ProductCardWidget(
+                          name: productName,
+                          price: productPrice,
+                          imagePath: imagePath,
+                          onAddTap:
+                              (!isOnline &&
+                                  imagePath.contains('tea_placeholder'))
+                              ? null
+                              : () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ProductDetailScreen(
+                                        product: product,
+                                        category:
+                                            categories[selectedCategoryIndex],
+                                        token: widget.token,
+                                        fullName: currentFullName,
+                                        email: widget.email,
+                                      ),
+                                    ),
+                                  );
+                                },
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
             ),
           ],

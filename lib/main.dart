@@ -6,9 +6,19 @@ import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final hiveService = HiveService();
-  await hiveService.init();
-  final proximityService = ProximityService();
-  proximityService.startListening();
-  runApp(const ProviderScope(child: MyApp()));
+  try {
+    final hiveService = HiveService();
+    await hiveService.init();
+    final proximityService = ProximityService();
+    proximityService.startListening();
+
+    runApp(
+      ProviderScope(
+        overrides: [hiveServiceProvider.overrideWithValue(hiveService)],
+        child: const MyApp(),
+      ),
+    );
+  } catch (e, st) {
+    debugPrint('Hive init failed: $e\n$st');
+  }
 }
