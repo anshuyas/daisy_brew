@@ -37,9 +37,7 @@ class TeaHiveModel extends HiveObject {
   Product toEntity() => Product(
     id: id,
     name: name,
-    image: image != null && !image!.startsWith('http')
-        ? 'http://192.168.254.50:3000/public/product_images/$image'
-        : (image ?? ''),
+    image: image ?? '',
     price: price,
     isAvailable: isAvailable,
     category: category,

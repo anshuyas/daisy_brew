@@ -470,21 +470,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     List<Product> merged = [...hiveTeas, ...apiTeas];
 
-    if (!isOnline) {
-      merged = merged
-          .map(
-            (p) => Product(
-              id: p.id,
-              name: p.name,
-              price: p.price,
-              category: p.category,
-              isAvailable: p.isAvailable,
-              image: 'assets/images/tea_placeholder.png',
-            ),
-          )
-          .toList();
-    }
-
     if (mounted) {
       setState(() {
         teaProductsList = merged;
@@ -532,6 +517,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               searchController: _searchController,
               onSearchChanged: (value) => setState(() => searchQuery = value),
             ),
+
+            if (!isOnline)
+              Container(
+                width: double.infinity,
+                color: Colors.red.shade700,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 16,
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.wifi_off, color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        "You're offline. Showing limited content.",
+                        style: TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        final connected = await ref
+                            .read(networkInfoProvider)
+                            .isConnected;
+                        setState(() => isOnline = connected);
+                        if (connected &&
+                            categories[selectedCategoryIndex] == 'Tea') {
+                          _loadTeaProducts();
+                        }
+                      },
+                      child: const Text(
+                        'Retry',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                          decorationColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -572,6 +601,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                       .toList()
                                 : [],
                           ];
+
+                    if (!isOnline &&
+                        categories[selectedCategoryIndex] == 'Tea' &&
+                        currentProducts.isEmpty) {
+                      currentProducts = List.generate(
+                        8,
+                        (i) => Product(
+                          id: 'placeholder_$i',
+                          name: 'Unavailable',
+                          price: 0,
+                          category: 'Tea',
+                          isAvailable: false,
+                          image: 'assets/images/tea_placeholder.png',
+                        ),
+                      );
+                    }
 
                     if (searchQuery.isNotEmpty) {
                       currentProducts = currentProducts
@@ -631,6 +676,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           name: productName,
                           price: productPrice,
                           imagePath: imagePath,
+                          isOnline: isOnline,
                           onAddTap:
                               (!isOnline &&
                                   imagePath.contains('tea_placeholder'))

@@ -6,6 +6,7 @@ class ProductCardWidget extends StatelessWidget {
   final String price;
   final String imagePath;
   final VoidCallback? onAddTap;
+  final bool isOnline;
 
   const ProductCardWidget({
     super.key,
@@ -13,6 +14,7 @@ class ProductCardWidget extends StatelessWidget {
     required this.price,
     required this.imagePath,
     this.onAddTap,
+    this.isOnline = true,
   });
 
   @override
@@ -58,8 +60,19 @@ class ProductCardWidget extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    if (imagePath == 'assets/images/tea_placeholder.png') {
-      return Image.asset(imagePath, fit: BoxFit.cover);
+    // If offline, always show placeholder per card
+    if (!isOnline) {
+      return Image.asset(
+        'assets/images/tea_placeholder.png',
+        fit: BoxFit.cover,
+      );
+    }
+
+    if (imagePath.isEmpty || imagePath == 'assets/images/tea_placeholder.png') {
+      return Image.asset(
+        'assets/images/tea_placeholder.png',
+        fit: BoxFit.cover,
+      );
     }
 
     if (imagePath.toLowerCase().startsWith('http')) {
@@ -68,10 +81,8 @@ class ProductCardWidget extends StatelessWidget {
         fit: BoxFit.cover,
         placeholder: (context, url) =>
             const Center(child: CircularProgressIndicator()),
-        errorWidget: (context, url, error) => Image.asset(
-          'assets/images/no_network_placeholder.png',
-          fit: BoxFit.cover,
-        ),
+        errorWidget: (context, url, error) =>
+            Image.asset('assets/images/tea_placeholder.png', fit: BoxFit.cover),
       );
     }
 
