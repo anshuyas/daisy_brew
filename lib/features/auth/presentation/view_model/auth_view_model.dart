@@ -9,16 +9,6 @@ import 'package:daisy_brew/features/auth/presentation/state/auth_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
-final forgotPasswordUsecaseProvider = Provider<ForgotPasswordUsecase>((ref) {
-  final repository = ref.read(authRepositoryProvider);
-  return ForgotPasswordUsecase(repository);
-});
-
-final resetPasswordUsecaseProvider = Provider<ResetPasswordUsecase>((ref) {
-  final repository = ref.read(authRepositoryProvider);
-  return ResetPasswordUsecase(repository);
-});
-
 final authViewModelProvider = NotifierProvider<AuthViewModel, AuthState>(
   AuthViewModel.new,
 );

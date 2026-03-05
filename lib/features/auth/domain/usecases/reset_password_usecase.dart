@@ -1,6 +1,8 @@
 import 'package:daisy_brew/core/error/failures.dart';
+import 'package:daisy_brew/features/auth/data/repositories/auth_repository.dart';
 import 'package:daisy_brew/features/auth/domain/repositories/auth_repository.dart';
 import 'package:dartz/dartz.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ResetPasswordParams {
   final String token;
@@ -21,3 +23,8 @@ class ResetPasswordUsecase {
     );
   }
 }
+
+final resetPasswordUsecaseProvider = Provider<ResetPasswordUsecase>((ref) {
+  final repository = ref.read(authRepositoryProvider);
+  return ResetPasswordUsecase(repository);
+});

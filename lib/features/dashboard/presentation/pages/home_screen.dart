@@ -23,12 +23,14 @@ class HomeScreen extends ConsumerStatefulWidget {
   final String token;
   final String fullName;
   final String email;
+  final Dio? dio;
 
   const HomeScreen({
     super.key,
     required this.token,
     required this.fullName,
     required this.email,
+    this.dio,
   });
 
   @override
@@ -285,6 +287,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ],
   };
 
+  Dio get _dio {
+    final d = widget.dio ?? Dio();
+    d.options.headers['Authorization'] = 'Bearer ${widget.token}';
+    return d;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -319,8 +327,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _fetchProfilePicture() async {
     try {
       if (!isOnline) return;
-      final dio = Dio();
-      dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
+      final dio = _dio;
       final response = await dio.get(
         'http://192.168.254.50:3000/api/v1/profile',
       );
@@ -338,8 +345,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _fetchApiProducts() async {
     try {
       if (!isOnline) return;
-      final dio = Dio();
-      dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
+      final dio = _dio;
       final response = await dio.get(
         'http://192.168.254.50:3000/api/v1/products',
       );

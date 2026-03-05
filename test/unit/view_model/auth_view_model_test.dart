@@ -5,8 +5,7 @@ import 'package:daisy_brew/features/auth/domain/usecases/login_usecase.dart';
 import 'package:daisy_brew/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:daisy_brew/features/auth/domain/usecases/register_usecase.dart';
 import 'package:daisy_brew/features/auth/presentation/state/auth_state.dart';
-import 'package:daisy_brew/features/auth/presentation/view_model/auth_view_model.dart'
-    hide forgotPasswordUsecaseProvider;
+import 'package:daisy_brew/features/auth/presentation/view_model/auth_view_model.dart';
 import 'package:daisy_brew/core/error/failures.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -66,13 +65,6 @@ void main() {
     mockLoginUsecase = MockLoginUsecase();
     mockLogoutUsecase = MockLogoutUsecase();
     mockForgotPasswordUsecase = MockForgotPasswordUsecase();
-    container = ProviderContainer(
-      overrides: [
-        forgotPasswordUsecaseProvider.overrideWithValue(
-          mockForgotPasswordUsecase,
-        ),
-      ],
-    );
     mockResetPasswordUsecase = MockResetPasswordUsecase();
 
     container = ProviderContainer(
@@ -186,35 +178,35 @@ void main() {
       });
     });
 
-    // group('ForgotPassword', () {
-    //   test('success', () async {
-    //     when(
-    //       () => mockForgotPasswordUsecase(any()),
-    //     ).thenAnswer((_) async => Future.value());
+    group('ForgotPassword', () {
+      test('success', () async {
+        when(
+          () => mockForgotPasswordUsecase(any()),
+        ).thenAnswer((_) async => Future.value());
 
-    //     final viewModel = container.read(authViewModelProvider.notifier);
+        final viewModel = container.read(authViewModelProvider.notifier);
 
-    //     await viewModel.sendPasswordResetEmail('test@example.com');
+        await viewModel.sendPasswordResetEmail('test@example.com');
 
-    //     final state = container.read(authViewModelProvider);
-    //     expect(state.status, AuthStatus.passwordResetEmailSent);
-    //     expect(state.errorMessage, isNull);
-    //   });
+        final state = container.read(authViewModelProvider);
+        expect(state.status, AuthStatus.passwordResetEmailSent);
+        expect(state.errorMessage, isNull);
+      });
 
-    //   test('failure', () async {
-    //     when(
-    //       () => mockForgotPasswordUsecase(any()),
-    //     ).thenThrow(Exception('Failed to send email'));
+      test('failure', () async {
+        when(
+          () => mockForgotPasswordUsecase(any()),
+        ).thenThrow(Exception('Failed to send email'));
 
-    //     final viewModel = container.read(authViewModelProvider.notifier);
+        final viewModel = container.read(authViewModelProvider.notifier);
 
-    //     await viewModel.sendPasswordResetEmail('test@example.com');
+        await viewModel.sendPasswordResetEmail('test@example.com');
 
-    //     final state = container.read(authViewModelProvider);
-    //     expect(state.status, AuthStatus.error);
-    //     expect(state.errorMessage, 'Failed to send email');
-    //   });
-    // });
+        final state = container.read(authViewModelProvider);
+        expect(state.status, AuthStatus.error);
+        expect(state.errorMessage, 'Failed to send email');
+      });
+    });
 
     group('ResetPassword', () {
       test('success', () async {
