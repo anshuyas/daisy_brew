@@ -38,6 +38,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   String? shippingAddress;
   bool isLoadingAddress = true;
+  bool _isPlacingOrder = false;
 
   @override
   void initState() {
@@ -331,79 +332,95 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               borderRadius: BorderRadius.circular(16),
             ),
           ),
-          onPressed: () async {
-            if (currentItems.isEmpty) return;
+          onPressed: _isPlacingOrder
+              ? null
+              : () async {
+                  if (currentItems.isEmpty) return;
 
-            if (orderType == "Delivery" &&
-                (shippingAddress == null || shippingAddress!.isEmpty)) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Please add shipping address first"),
-                ),
-              );
-              return;
-            }
+                  if (orderType == "Delivery" &&
+                      (shippingAddress == null || shippingAddress!.isEmpty)) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Please add shipping address first"),
+                      ),
+                    );
+                    return;
+                  }
 
-            final total = currentItems.fold<double>(
-              0,
-              (sum, item) => sum + (item.product.price * item.quantity),
-            );
-
-            final productsForApi = currentItems
-                .map(
-                  (item) => {
-                    'productId': item.product.id,
-                    'name': item.product.name,
-                    'quantity': item.quantity,
-                    'price': item.product.price,
-                  },
-                )
-                .toList();
-
-            try {
-              final apiClient = ApiClient();
-              final orderApi = OrderRemoteDatasource(apiClient);
-
-              final backendOrder = await orderApi.createOrder(
-                products: productsForApi,
-                totalPrice: total,
-              );
-
-              final order = Order(
-                orderNumber: backendOrder.id,
-                dateTime: backendOrder.createdAt,
-                items: currentItems,
-                status: backendOrder.status.value,
-                total: backendOrder.totalPrice,
-              );
-
-              await OrderLocalDataSource.addOrder(order);
-
-              if (widget.singleItem == null) {
-                CartLocalDataSource.clear();
-              }
-
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (_) {
-                  return _OrderSuccessDialog(
-                    token: widget.token,
-                    fullName: widget.fullName,
-                    email: widget.email,
+                  final total = currentItems.fold<double>(
+                    0,
+                    (sum, item) => sum + (item.product.price * item.quantity),
                   );
+
+                  final productsForApi = currentItems
+                      .map(
+                        (item) => {
+                          'productId': item.product.id,
+                          'name': item.product.name,
+                          'quantity': item.quantity,
+                          'price': item.product.price,
+                        },
+                      )
+                      .toList();
+
+                  setState(() => _isPlacingOrder = true);
+                  try {
+                    final apiClient = ApiClient();
+                    final orderApi = OrderRemoteDatasource(apiClient);
+
+                    final backendOrder = await orderApi.createOrder(
+                      products: productsForApi,
+                      totalPrice: total,
+                    );
+
+                    final order = Order(
+                      orderNumber: backendOrder.id,
+                      dateTime: backendOrder.createdAt,
+                      items: currentItems,
+                      status: backendOrder.status.value,
+                      total: backendOrder.totalPrice,
+                    );
+
+                    await OrderLocalDataSource.addOrder(order);
+
+                    if (widget.singleItem == null) {
+                      CartLocalDataSource.clear();
+                    }
+
+                    if (!mounted) return;
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (_) {
+                        return _OrderSuccessDialog(
+                          token: widget.token,
+                          fullName: widget.fullName,
+                          email: widget.email,
+                        );
+                      },
+                    );
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Failed to place order: $e")),
+                    );
+                  } finally {
+                    if (mounted) setState(() => _isPlacingOrder = false);
+                  }
                 },
-              );
-            } catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Failed to place order: $e")),
-              );
-            }
-          },
-          child: const Text(
-            "Place Order",
-            style: TextStyle(fontSize: 16, color: Colors.white),
-          ),
+          child: _isPlacingOrder
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+              : const Text(
+                  "Place Order",
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
         ),
       ),
     );

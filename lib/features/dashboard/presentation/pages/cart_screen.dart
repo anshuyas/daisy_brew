@@ -47,10 +47,31 @@ class _CartScreenState extends State<CartScreen> {
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
-                    leading: Image.asset(
-                      item.product.image,
+                    leading: SizedBox(
                       width: 50,
-                      fit: BoxFit.contain,
+                      height: 50,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: item.product.image.startsWith('http')
+                            ? Image.network(
+                                item.product.image,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.local_cafe,
+                                  color: Colors.brown,
+                                ),
+                              )
+                            : Image.asset(
+                                item.product.image.isNotEmpty
+                                    ? item.product.image
+                                    : 'assets/images/tea_placeholder.png',
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.local_cafe,
+                                  color: Colors.brown,
+                                ),
+                              ),
+                      ),
                     ),
                     title: Text(item.product.name),
                     subtitle: Text(

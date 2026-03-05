@@ -165,8 +165,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 if (value == null || value.isEmpty) {
                                   return 'Email is required';
                                 }
-                                if (!value.contains('@')) {
-                                  return 'Invalid email';
+                                final emailRegex = RegExp(
+                                  r'^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$',
+                                );
+                                if (!emailRegex.hasMatch(value.trim())) {
+                                  return 'Enter a valid email';
                                 }
                                 return null;
                               },

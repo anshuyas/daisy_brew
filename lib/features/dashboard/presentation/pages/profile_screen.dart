@@ -286,11 +286,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _signOut() async {
     final prefs = await SharedPreferences.getInstance();
-    final userKey = widget.email;
-    await prefs.remove('$userKey-profile_picture');
-    await prefs.remove('$userKey-fullName');
-    await prefs.remove('$userKey-email');
-    await prefs.remove('$userKey-shipping_address');
+    await prefs.remove('token');
     if (!mounted) return;
     Navigator.pushReplacement(
       context,

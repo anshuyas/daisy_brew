@@ -27,9 +27,17 @@ class Product {
   // Create Product from JSON
   factory Product.fromJson(Map<String, dynamic> json) {
     final rawImage = json['image'] ?? '';
-    final fullImage = rawImage.startsWith('http')
-        ? rawImage
-        : 'http://192.168.254.50:3000/public/product_images/$rawImage';
+
+    String fullImage;
+    if (rawImage.startsWith('http') || rawImage.startsWith('assets/')) {
+      // Already a full URL or a local asset path — use as-is
+      fullImage = rawImage;
+    } else if (rawImage.isEmpty) {
+      fullImage = 'assets/images/tea_placeholder.png';
+    } else {
+      // Raw filename from backend — build the full URL
+      fullImage = 'http://192.168.254.50:3000/public/product_images/$rawImage';
+    }
 
     return Product(
       id: json['_id'] ?? json['id'],

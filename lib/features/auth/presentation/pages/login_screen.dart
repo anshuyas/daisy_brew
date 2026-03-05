@@ -1,4 +1,6 @@
 import 'dart:ui';
+import 'package:daisy_brew/features/auth/data/datasources/local/cart_local_datasource.dart';
+import 'package:daisy_brew/features/auth/data/datasources/local/order_local_datasource.dart';
 import 'package:daisy_brew/features/auth/presentation/pages/forgot_password_screen.dart';
 import 'package:daisy_brew/features/auth/presentation/providers/auth_provider.dart';
 import 'package:daisy_brew/features/dashboard/presentation/pages/admin_dashboard_screen.dart';
@@ -27,7 +29,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
 
-    ref.listen(authViewModelProvider, (_, next) {
+    ref.listen(authViewModelProvider, (_, next) async {
       if (next.status == AuthStatus.authenticated) {
         if (next.user != null && next.user!.token != null) {
           ref
@@ -40,6 +42,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
             );
           } else {
+            await CartLocalDataSource.loadCart();
+            await OrderLocalDataSource.loadOrders();
+
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -151,7 +156,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               if (value == null || value.isEmpty) {
                                 return 'Email is required';
                               }
-                              if (!value.contains('@')) return 'Invalid email';
+                              final emailRegex = RegExp(
+                                r'^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$',
+                              );
+                              if (!emailRegex.hasMatch(value.trim())) {
+                                return 'Enter a valid email';
+                              }
                               return null;
                             },
                           ),
