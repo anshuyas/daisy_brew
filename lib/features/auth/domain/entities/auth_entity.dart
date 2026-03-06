@@ -7,11 +7,13 @@ class AuthEntity extends Equatable {
   final String? password;
   final String? profilePicture;
   final String? token;
+  final String role;
 
   const AuthEntity({
     this.authId,
     required this.fullName,
     required this.email,
+    required this.role,
     this.password,
     this.profilePicture,
     this.token,

@@ -1,23 +1,39 @@
 import 'package:daisy_brew/features/onboarding/presentation/pages/onboarding1_screen.dart';
 import 'package:flutter/material.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: const SplashScreen(),
-    );
-  }
-}
-
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  AnimationController? _steamController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _steamController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _steamController?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_steamController == null) {
+      return const SizedBox(); // safety fallback
+    }
+
     return Scaffold(
       body: Stack(
         children: [
@@ -26,71 +42,99 @@ class SplashScreen extends StatelessWidget {
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFFD8C3B0), // Light beige
-                  Color(0xFFBFA58C), // Medium beige
-                  Color(0xFF8C7058), // Darker brown
+                  Color(0xFFF6E6D6),
+                  Color(0xFFD2B48C),
+                  Color(0xFF8B5E3C),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
             ),
           ),
-          // Center content
+
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo
-                CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Colors.white,
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.contain,
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Curved Steam Waves
+                    _buildCurvedSteam(offsetX: -18, delay: 0.0),
+                    _buildCurvedSteam(offsetX: 0, delay: 0.3),
+                    _buildCurvedSteam(offsetX: 18, delay: 0.6),
+
+                    // Logo
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.brown.withOpacity(0.4),
+                            blurRadius: 20,
+                            spreadRadius: 3,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: const CircleAvatar(
+                        radius: 65,
+                        backgroundColor: Colors.white,
+                        backgroundImage: AssetImage('assets/images/logo.png'),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 30),
+
+                const Text(
+                  "Daisy Brew",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.brown,
                   ),
                 ),
-                const SizedBox(height: 20),
-                // Tagline
+
+                const SizedBox(height: 10),
+
                 const Text(
-                  'Crafting comfort in every cup.',
+                  "Crafting comfort in every cup.",
                   style: TextStyle(
                     fontSize: 16,
                     fontStyle: FontStyle.italic,
                     color: Colors.brown,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ],
             ),
           ),
-          // Start Brewing Button
+
           Positioned(
-            bottom: 50,
-            left: 50,
-            right: 50,
+            bottom: 60,
+            left: 40,
+            right: 40,
             child: ElevatedButton(
               onPressed: () {
-                // Navigate to OnboardingScreen1
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (_) => OnboardingScreen1()),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF3D19C),
-                padding: const EdgeInsets.symmetric(vertical: 15),
+                backgroundColor: const Color(0xFF6F4E37),
+                padding: const EdgeInsets.symmetric(vertical: 18),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(30),
                 ),
               ),
               child: const Text(
-                'Start Brewing',
+                "Start Brewing",
                 style: TextStyle(
                   fontSize: 18,
-                  color: Colors.brown,
                   fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -99,4 +143,62 @@ class SplashScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildCurvedSteam({required double offsetX, required double delay}) {
+    return AnimatedBuilder(
+      animation: _steamController!,
+      builder: (context, child) {
+        final value = (_steamController!.value + delay) % 1.0;
+
+        return Transform.translate(
+          offset: Offset(offsetX, -70 - (value * 50)),
+          child: Opacity(
+            opacity: 1 - value,
+            child: CustomPaint(
+              size: const Size(30, 60),
+              painter: SteamPainter(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class SteamPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.brown.withOpacity(0.35)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+
+    final path = Path();
+
+    path.moveTo(size.width / 2, size.height);
+
+    path.cubicTo(
+      size.width * 0.2,
+      size.height * 0.75,
+      size.width * 0.8,
+      size.height * 0.5,
+      size.width * 0.4,
+      size.height * 0.25,
+    );
+
+    path.cubicTo(
+      size.width * 0.1,
+      size.height * 0.1,
+      size.width * 0.9,
+      size.height * 0.05,
+      size.width * 0.5,
+      0,
+    );
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

@@ -2,8 +2,19 @@ import 'package:flutter/material.dart';
 
 class HeaderWidget extends StatelessWidget {
   final VoidCallback onCartTap;
+  final String fullName;
+  final String? profilePictureUrl;
+  final TextEditingController? searchController;
+  final ValueChanged<String>? onSearchChanged;
 
-  const HeaderWidget({super.key, required this.onCartTap});
+  const HeaderWidget({
+    super.key,
+    required this.onCartTap,
+    required this.fullName,
+    this.profilePictureUrl,
+    this.searchController,
+    this.onSearchChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +33,17 @@ class HeaderWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const CircleAvatar(
+              // Profile picture
+              CircleAvatar(
                 radius: 18,
                 backgroundColor: Colors.white,
-                child: Icon(Icons.person, color: Colors.brown),
+                backgroundImage:
+                    profilePictureUrl != null && profilePictureUrl!.isNotEmpty
+                    ? NetworkImage(profilePictureUrl!)
+                    : null,
+                child: (profilePictureUrl == null || profilePictureUrl!.isEmpty)
+                    ? const Icon(Icons.person, color: Colors.brown, size: 24)
+                    : null,
               ),
               GestureDetector(
                 onTap: onCartTap,
@@ -34,18 +52,21 @@ class HeaderWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Good to see you, Username!',
-            style: TextStyle(color: Colors.white, fontSize: 16),
+          Text(
+            'Good to see you, $fullName!',
+            style: const TextStyle(color: Colors.white, fontSize: 16),
           ),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
+            height: 40,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(30),
             ),
-            child: const TextField(
+            child: TextField(
+              controller: searchController,
+              onChanged: onSearchChanged,
               decoration: InputDecoration(
                 hintText: 'Search',
                 border: InputBorder.none,

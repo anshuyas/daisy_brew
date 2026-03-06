@@ -4,4 +4,6 @@ class HiveTableConstant {
   static const int authTypeId = 1;
   static const String authTable = 'auth_table';
   static const String appSettingsTable = 'app_settings';
+  static const int teaProductTypeId = 2; // unique Hive typeId
+  static const String teaTable = 'tea_table';
 }

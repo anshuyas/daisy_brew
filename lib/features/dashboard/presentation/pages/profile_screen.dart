@@ -1,19 +1,29 @@
 import 'dart:io';
+import 'package:daisy_brew/features/auth/presentation/pages/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'notification_screen.dart';
+import 'shipping_address_screen.dart';
+import 'change_password_screen.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String token;
   final String? initialProfilePicture;
   final String fullName;
+  final String email;
+  final void Function(String newURL, {String? updatedName}) onProfileUpdated;
 
   const ProfileScreen({
     super.key,
     required this.token,
     this.initialProfilePicture,
-    this.fullName = "User",
+    required this.fullName,
+    required this.email,
+    required this.onProfileUpdated,
   });
 
   @override
@@ -24,13 +34,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
   XFile? _image;
   String? _uploadedImageUrl;
   bool _isUploading = false;
-
   final ImagePicker _picker = ImagePicker();
+
+  late String currentFullName;
+  late String currentEmail;
 
   @override
   void initState() {
     super.initState();
-    _uploadedImageUrl = widget.initialProfilePicture;
+    _loadProfilePicture();
+    _loadProfileInfo();
+    currentFullName = widget.fullName;
+    currentEmail = widget.email;
+  }
+
+  // Load saved profile info
+  Future<void> _loadProfileInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userKey = widget.email;
+    setState(() {
+      currentFullName = prefs.getString('$userKey-fullName') ?? widget.fullName;
+      currentEmail = prefs.getString('$userKey-email') ?? widget.email;
+    });
+  }
+
+  // Load saved profile picture
+  Future<void> _loadProfilePicture() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userKey = widget.email;
+    final savedUrl = prefs.getString('$userKey-profile_picture');
+
+    if (savedUrl != null && savedUrl.isNotEmpty) {
+      setState(() {
+        _uploadedImageUrl = savedUrl;
+      });
+    }
+  }
+
+  // Save profile picture locally
+  Future<void> _saveProfilePictureLocally(String url) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userKey = widget.email;
+    await prefs.setString('$userKey-profile_picture', url);
+  }
+
+  // Save fullName & email locally
+  Future<void> _saveProfileInfoLocally(String fullName, String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userKey = widget.email;
+    await prefs.setString('$userKey-fullName', fullName);
+    await prefs.setString('$userKey-email', email);
   }
 
   Future<bool> _requestPermissions() async {
@@ -84,7 +137,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      // Request permissions
       bool granted = await _requestPermissions();
       if (!granted) {
         ScaffoldMessenger.of(
@@ -113,9 +165,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isUploading = true);
 
     final baseUrl = Platform.isAndroid
-        ? 'http://192.168.55.204:3000/api/v1' // real device
-        : 'http://10.0.2.2:3000/api/v1'; // emulator
-
+        ? 'http://192.168.254.50:3000/api/v1'
+        : 'http://10.0.2.2:3000/api/v1';
     final url = "$baseUrl/profile/upload";
 
     final formData = FormData.fromMap({
@@ -130,15 +181,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       final response = await dio.post(url, data: formData);
-      final filename = response.data['filename'] as String?;
+      final newURL = response.data['filename'] as String?;
 
-      if (filename != null) {
+      if (newURL != null) {
+        final fullUrl =
+            "http://192.168.254.50:3000/public/profile_pictures/$newURL";
+
         setState(() {
-          _uploadedImageUrl =
-              "http://192.168.55.204:3000/public/profile_pictures/$filename";
+          _uploadedImageUrl = fullUrl;
         });
 
-        // Directly show success message here
+        await _saveProfilePictureLocally(fullUrl);
+        widget.onProfileUpdated(fullUrl, updatedName: currentFullName);
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Profile picture updated successfully")),
         );
@@ -177,6 +232,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _onMenuTap(String menu) async {
+    if (menu == "Edit Profile") {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => EditProfileScreen(
+            token: widget.token,
+            fullName: currentFullName,
+            email: currentEmail,
+            saveProfileInfoLocally: _saveProfileInfoLocally, // pass function
+          ),
+        ),
+      );
+
+      // Update UI if user updated profile
+      if (result != null) {
+        setState(() {
+          currentFullName = result["fullName"];
+          currentEmail = result["email"];
+        });
+        widget.onProfileUpdated(
+          _uploadedImageUrl ?? "",
+          updatedName: currentFullName,
+        );
+      }
+    } else if (menu == "Notifications") {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => NotificationScreen(token: widget.token),
+        ),
+      );
+    } else if (menu == "Shipping Address") {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ShippingAddressScreen(
+            token: widget.token,
+            currentEmail: currentEmail,
+          ),
+        ),
+      );
+    } else if (menu == "Change Password") {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChangePasswordScreen(token: widget.token),
+        ),
+      );
+    }
+  }
+
+  void _signOut() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => LoginScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -205,6 +322,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           )
                         : null,
                   ),
+                  if (_isUploading)
+                    Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        color: Colors.black45,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      ),
+                    ),
                   Positioned(
                     bottom: 0,
                     right: 0,
@@ -224,55 +353,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                widget.fullName,
+                currentFullName,
                 style: const TextStyle(
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              _isUploading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton.icon(
-                      onPressed: _showImageSourceActionSheet,
-                      icon: const Icon(Icons.upload_file),
-                      label: const Text("Change Profile Picture"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.brown,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        textStyle: const TextStyle(fontSize: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
+              Text(
+                currentEmail,
+                style: const TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _showImageSourceActionSheet,
+                icon: const Icon(Icons.upload_file),
+                label: const Text("Change Profile Picture"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.brown,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  textStyle: const TextStyle(fontSize: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
               const SizedBox(height: 32),
               _buildMenuCard(
                 icon: Icons.edit,
                 title: "Edit Profile",
-                onTap: () {},
+                onTap: () => _onMenuTap("Edit Profile"),
               ),
               _buildMenuCard(
                 icon: Icons.notifications,
                 title: "Notifications",
-                onTap: () {},
+                onTap: () => _onMenuTap("Notifications"),
               ),
               _buildMenuCard(
                 icon: Icons.location_on,
                 title: "Shipping Address",
-                onTap: () {},
+                onTap: () => _onMenuTap("Shipping Address"),
               ),
               _buildMenuCard(
                 icon: Icons.lock,
                 title: "Change Password",
-                onTap: () {},
+                onTap: () => _onMenuTap("Change Password"),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: _signOut,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.brown,
                   foregroundColor: Colors.white,
@@ -292,4 +424,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+}
+
+Widget buildInputField({
+  required TextEditingController controller,
+  required String label,
+  required IconData icon,
+  bool obscureText = false,
+  int maxLines = 1,
+}) {
+  return TextField(
+    controller: controller,
+    obscureText: obscureText,
+    maxLines: maxLines,
+    decoration: InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: Colors.brown),
+      filled: true,
+      fillColor: Colors.brown[50],
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.brown, width: 2),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.brown.shade100, width: 1),
+      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+    ),
+  );
 }
